@@ -19,15 +19,17 @@ const EXAMPLE_QUESTIONS = {
     "Summarize crypto news from the last 16 hours",
     "BTC price now",
     "What happened in AI today?",
+    "Why is BTC going up?",
+    "What is a prediction market?",
     "What are the biggest market narratives?",
-    "ETH price",
   ],
   th: [
     "สรุปข่าวคริปโต 16 ชั่วโมงที่ผ่านมา",
     "ราคา BTC ตอนนี้เท่าไหร่",
     "ข่าว AI วันนี้มีอะไรบ้าง",
+    "ทำไม BTC ถึงขึ้น?",
+    "Prediction market คืออะไร?",
     "อะไรคือ narrative ตลาดตอนนี้",
-    "ราคา ETH",
   ],
 };
 
