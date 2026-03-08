@@ -62,8 +62,12 @@ export default function Dashboard({ prefs, setPrefs, saved, read, onToggleSave, 
     });
   }, [liveArticles, activeFilter, search]);
 
-  // Separate X signal articles from regular articles
-  const xArticles = useMemo(() => articles.filter(a => a.source.toLowerCase().startsWith('x @') || a.source.toLowerCase() === 'x'), [articles]);
+  // Separate X signal articles from regular articles (always from full list, then filter by active category)
+  const xArticles = useMemo(() => {
+    const all = liveArticles.filter(a => a.source.toLowerCase().startsWith('x @'));
+    if (activeFilter === 'all') return all;
+    return all.filter(a => a.category === activeFilter);
+  }, [liveArticles, activeFilter]);
   const regularArticles = useMemo(() => articles.filter(a => !a.source.toLowerCase().startsWith('x @') && a.source.toLowerCase() !== 'x'), [articles]);
 
   const signalArticles = useMemo(() => [...regularArticles].sort((a, b) => (b.signalScore ?? 50) - (a.signalScore ?? 50)), [regularArticles]);
@@ -142,8 +146,8 @@ export default function Dashboard({ prefs, setPrefs, saved, read, onToggleSave, 
           {/* Quick Scan — first */}
           {activeFilter === 'all' && <QuickScan articles={articles} narratives={liveNarratives} lang={lang} />}
 
-          {/* X Signals */}
-          {activeFilter === 'all' && <XSignalPlaceholder lang={lang} xArticles={xArticles} />}
+          {/* X Signals — always visible, filtered by active category */}
+          <XSignalPlaceholder lang={lang} xArticles={xArticles} />
 
           {activeFilter === 'all' ? (
             <>

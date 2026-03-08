@@ -79,12 +79,51 @@ const RSS_FEEDS: RSSFeed[] = [
   { url: 'https://feeds.feedburner.com/zabornet', source: 'ZeroHedge', category: 'macro', subtopic: 'Macro Economy', tier: 3 },
   { url: 'https://www.mining.com/feed/', source: 'Mining.com', category: 'commodities', subtopic: 'Metals', tier: 3 },
 
-  // ═══ X / Twitter Signal Feeds (via RSS bridges) ═══
-  { url: 'https://rsshub.app/twitter/user/zabornet', source: 'X @zabornet', category: 'macro', subtopic: 'Macro Economy', tier: 3 },
-  { url: 'https://rsshub.app/twitter/user/DocumentingBTC', source: 'X @DocumentingBTC', category: 'crypto', subtopic: 'L1', tier: 3 },
-  { url: 'https://rsshub.app/twitter/user/WatcherGuru', source: 'X @WatcherGuru', category: 'crypto', subtopic: 'Altcoins', tier: 2 },
-  { url: 'https://rsshub.app/twitter/user/DeItaone', source: 'X @DeItaone', category: 'macro', subtopic: 'Market Movements', tier: 2 },
-  { url: 'https://rsshub.app/twitter/user/tier10k', source: 'X @tier10k', category: 'investment', subtopic: 'Market Movements', tier: 2 },
+  // ═══ X / Twitter Signal Feeds — Curated Sources ═══
+  // AI
+  { url: 'https://rsshub.app/twitter/user/OpenAI', source: 'X @OpenAI', category: 'ai', subtopic: 'Companies', tier: 1 },
+  { url: 'https://rsshub.app/twitter/user/OpenAIDevs', source: 'X @OpenAIDevs', category: 'ai', subtopic: 'Models', tier: 2 },
+  { url: 'https://rsshub.app/twitter/user/sama', source: 'X @sama', category: 'ai', subtopic: 'Companies', tier: 1 },
+  { url: 'https://rsshub.app/twitter/user/AnthropicAI', source: 'X @AnthropicAI', category: 'ai', subtopic: 'Models', tier: 1 },
+  { url: 'https://rsshub.app/twitter/user/GoogleDeepMind', source: 'X @GoogleDeepMind', category: 'ai', subtopic: 'Research', tier: 1 },
+  { url: 'https://rsshub.app/twitter/user/ilyasut', source: 'X @ilyasut', category: 'ai', subtopic: 'Research', tier: 2 },
+  { url: 'https://rsshub.app/twitter/user/karpathy', source: 'X @karpathy', category: 'ai', subtopic: 'Research', tier: 1 },
+  { url: 'https://rsshub.app/twitter/user/TheAITimeline', source: 'X @TheAITimeline', category: 'ai', subtopic: 'Companies', tier: 2 },
+  { url: 'https://rsshub.app/twitter/user/perplexity_ai', source: 'X @perplexity_ai', category: 'ai', subtopic: 'Startups', tier: 2 },
+  { url: 'https://rsshub.app/twitter/user/stabilityai', source: 'X @stabilityai', category: 'ai', subtopic: 'Models', tier: 2 },
+  // Crypto
+  { url: 'https://rsshub.app/twitter/user/CoinDesk', source: 'X @CoinDesk', category: 'crypto', subtopic: 'L1', tier: 1 },
+  { url: 'https://rsshub.app/twitter/user/Cointelegraph', source: 'X @Cointelegraph', category: 'crypto', subtopic: 'Altcoins', tier: 1 },
+  { url: 'https://rsshub.app/twitter/user/TheBlock__', source: 'X @TheBlock__', category: 'crypto', subtopic: 'DeFi', tier: 1 },
+  { url: 'https://rsshub.app/twitter/user/DecryptMedia', source: 'X @DecryptMedia', category: 'crypto', subtopic: 'L1', tier: 2 },
+  { url: 'https://rsshub.app/twitter/user/BitcoinMagazine', source: 'X @BitcoinMagazine', category: 'crypto', subtopic: 'L1', tier: 1 },
+  { url: 'https://rsshub.app/twitter/user/WuBlockchain', source: 'X @WuBlockchain', category: 'crypto', subtopic: 'Altcoins', tier: 2 },
+  { url: 'https://rsshub.app/twitter/user/DocumentingBTC', source: 'X @DocumentingBTC', category: 'crypto', subtopic: 'L1', tier: 2 },
+  { url: 'https://rsshub.app/twitter/user/glabornet', source: 'X @Glassnode', category: 'crypto', subtopic: 'L1', tier: 2 },
+  { url: 'https://rsshub.app/twitter/user/lookonchain', source: 'X @lookonchain', category: 'crypto', subtopic: 'DeFi', tier: 1 },
+  { url: 'https://rsshub.app/twitter/user/ArkhamIntel', source: 'X @ArkhamIntel', category: 'crypto', subtopic: 'L1', tier: 1 },
+  // Macro
+  { url: 'https://rsshub.app/twitter/user/KobeissiLetter', source: 'X @KobeissiLetter', category: 'macro', subtopic: 'Macro Economy', tier: 1 },
+  { url: 'https://rsshub.app/twitter/user/unusual_whales', source: 'X @unusual_whales', category: 'macro', subtopic: 'Market Movements', tier: 1 },
+  { url: 'https://rsshub.app/twitter/user/WatcherGuru', source: 'X @WatcherGuru', category: 'macro', subtopic: 'Market Movements', tier: 1 },
+  { url: 'https://rsshub.app/twitter/user/WalterBloomberg', source: 'X @WalterBloomberg', category: 'macro', subtopic: 'Market Movements', tier: 1 },
+  { url: 'https://rsshub.app/twitter/user/MacroAlf', source: 'X @MacroAlf', category: 'macro', subtopic: 'Macro Economy', tier: 2 },
+  { url: 'https://rsshub.app/twitter/user/LynAldenContact', source: 'X @LynAldenContact', category: 'macro', subtopic: 'Macro Economy', tier: 2 },
+  { url: 'https://rsshub.app/twitter/user/RaoulGMI', source: 'X @RaoulGMI', category: 'macro', subtopic: 'Macro Economy', tier: 2 },
+  { url: 'https://rsshub.app/twitter/user/LukeGromen', source: 'X @LukeGromen', category: 'macro', subtopic: 'Macro Economy', tier: 2 },
+  { url: 'https://rsshub.app/twitter/user/biancoresearch', source: 'X @biancoresearch', category: 'macro', subtopic: 'Macro Economy', tier: 2 },
+  { url: 'https://rsshub.app/twitter/user/TheMarketEar', source: 'X @TheMarketEar', category: 'macro', subtopic: 'Market Movements', tier: 2 },
+  // Tech & Markets
+  { url: 'https://rsshub.app/twitter/user/TechCrunch', source: 'X @TechCrunch', category: 'tech-stocks', subtopic: 'Tech Stocks', tier: 1 },
+  { url: 'https://rsshub.app/twitter/user/verge', source: 'X @verge', category: 'tech-stocks', subtopic: 'Tech Stocks', tier: 2 },
+  { url: 'https://rsshub.app/twitter/user/ArsTechnica', source: 'X @ArsTechnica', category: 'tech-stocks', subtopic: 'Tech Stocks', tier: 2 },
+  { url: 'https://rsshub.app/twitter/user/CNBC', source: 'X @CNBC', category: 'investment', subtopic: 'Market Movements', tier: 1 },
+  { url: 'https://rsshub.app/twitter/user/ReutersBiz', source: 'X @ReutersBiz', category: 'investment', subtopic: 'Market Movements', tier: 1 },
+  { url: 'https://rsshub.app/twitter/user/BloombergTech', source: 'X @BloombergTech', category: 'tech-stocks', subtopic: 'Tech Stocks', tier: 1 },
+  { url: 'https://rsshub.app/twitter/user/StockMKTNewz', source: 'X @StockMKTNewz', category: 'investment', subtopic: 'Market Movements', tier: 2 },
+  { url: 'https://rsshub.app/twitter/user/DeItaone', source: 'X @DeItaone', category: 'investment', subtopic: 'Market Movements', tier: 1 },
+  { url: 'https://rsshub.app/twitter/user/business', source: 'X @business', category: 'investment', subtopic: 'Market Movements', tier: 1 },
+  { url: 'https://rsshub.app/twitter/user/WSJmarkets', source: 'X @WSJmarkets', category: 'investment', subtopic: 'Market Movements', tier: 1 },
 ];
 
 // ─── HTML Entity Decoding ───
