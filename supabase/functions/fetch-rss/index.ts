@@ -46,30 +46,50 @@ const RSS_FEEDS: RSSFeed[] = [
   { url: 'https://www.theblock.co/rss.xml', source: 'The Block', category: 'crypto', subtopic: 'DeFi', tier: 1 },
   { url: 'https://decrypt.co/feed', source: 'Decrypt', category: 'crypto', subtopic: 'L1', tier: 1 },
   { url: 'https://bitcoinmagazine.com/.rss/full/', source: 'Bitcoin Magazine', category: 'crypto', subtopic: 'L1', tier: 1 },
-  // Macro / Investment / Markets
+
+  // Macro / Investment / Markets — EXPANDED
   { url: 'https://www.reuters.com/rssFeed/businessNews', source: 'Reuters', category: 'macro', subtopic: 'Macro Economy', tier: 1 },
   { url: 'https://www.reuters.com/rssFeed/GCA-Commodities', source: 'Reuters Commodities', category: 'commodities', subtopic: 'Gold', tier: 1 },
+  { url: 'https://www.reuters.com/rssFeed/GCA-CentralBanksTop', source: 'Reuters Central Banks', category: 'macro', subtopic: 'Central Bank', tier: 1 },
+  { url: 'https://www.reuters.com/rssFeed/GCA-EconomicNews', source: 'Reuters Economy', category: 'macro', subtopic: 'Macro Economy', tier: 1 },
+  { url: 'https://www.reuters.com/rssFeed/GCA-BondsNews', source: 'Reuters Bonds', category: 'macro', subtopic: 'Market Movements', tier: 1 },
+  { url: 'https://www.reuters.com/rssFeed/GCA-ForeignExchange', source: 'Reuters FX', category: 'macro', subtopic: 'Macro Economy', tier: 1 },
+  { url: 'https://www.reuters.com/rssFeed/GCA-EnergyTop', source: 'Reuters Energy', category: 'commodities', subtopic: 'Oil', tier: 1 },
   { url: 'https://feeds.bbci.co.uk/news/business/rss.xml', source: 'BBC Business', category: 'macro', subtopic: 'Macro Economy', tier: 1 },
   { url: 'https://search.cnbc.com/rs/search/combinedcms/view.xml?partnerId=wrss01&id=10001147', source: 'CNBC', category: 'investment', subtopic: 'Market Movements', tier: 1 },
   { url: 'https://search.cnbc.com/rs/search/combinedcms/view.xml?partnerId=wrss01&id=15839069', source: 'CNBC Tech', category: 'tech-stocks', subtopic: 'Tech Stocks', tier: 1 },
   { url: 'https://search.cnbc.com/rs/search/combinedcms/view.xml?partnerId=wrss01&id=20910258', source: 'CNBC Economy', category: 'macro', subtopic: 'Central Bank', tier: 1 },
   { url: 'https://search.cnbc.com/rs/search/combinedcms/view.xml?partnerId=wrss01&id=10000664', source: 'CNBC Finance', category: 'investment', subtopic: 'Earnings', tier: 1 },
+  { url: 'https://search.cnbc.com/rs/search/combinedcms/view.xml?partnerId=wrss01&id=10000115', source: 'CNBC World', category: 'macro', subtopic: 'Macro Economy', tier: 1 },
+  { url: 'https://search.cnbc.com/rs/search/combinedcms/view.xml?partnerId=wrss01&id=19854910', source: 'CNBC Bonds', category: 'macro', subtopic: 'Market Movements', tier: 1 },
 
   // ═══ Tier 2: Quality Sources ═══
   // AI
-  { url: 'https://techcrunch.com/category/artificial-intelligence/feed/', source: 'TechCrunch', category: 'ai', subtopic: 'Companies', tier: 2 },
-  { url: 'https://www.theverge.com/rss/ai-artificial-intelligence/index.xml', source: 'The Verge', category: 'ai', subtopic: 'Companies', tier: 2 },
-  { url: 'https://arstechnica.com/ai/feed/', source: 'Ars Technica', category: 'ai', subtopic: 'Research', tier: 2 },
+  { url: 'https://techcrunch.com/category/artificial-intelligence/feed/', source: 'TechCrunch AI', category: 'ai', subtopic: 'Companies', tier: 2 },
+  { url: 'https://www.theverge.com/rss/ai-artificial-intelligence/index.xml', source: 'The Verge AI', category: 'ai', subtopic: 'Companies', tier: 2 },
+  { url: 'https://arstechnica.com/ai/feed/', source: 'Ars Technica AI', category: 'ai', subtopic: 'Research', tier: 2 },
   { url: 'https://www.technologyreview.com/feed/', source: 'MIT Tech Review', category: 'ai', subtopic: 'Research', tier: 2 },
   { url: 'https://venturebeat.com/category/ai/feed/', source: 'VentureBeat', category: 'ai', subtopic: 'Startups', tier: 2 },
-  // Tech Stocks
-  { url: 'https://www.theverge.com/rss/index.xml', source: 'The Verge Tech', category: 'tech-stocks', subtopic: 'Tech Stocks', tier: 2 },
-  { url: 'https://arstechnica.com/gadgets/feed/', source: 'Ars Technica Tech', category: 'tech-stocks', subtopic: 'Tech Stocks', tier: 2 },
-  // Macro / Investment
+
+  // Tech — EXPANDED
+  { url: 'https://techcrunch.com/feed/', source: 'TechCrunch', category: 'tech-stocks', subtopic: 'Tech Stocks', tier: 1 },
+  { url: 'https://www.theverge.com/rss/index.xml', source: 'The Verge', category: 'tech-stocks', subtopic: 'Tech Stocks', tier: 2 },
+  { url: 'https://arstechnica.com/gadgets/feed/', source: 'Ars Technica', category: 'tech-stocks', subtopic: 'Tech Stocks', tier: 2 },
+  { url: 'https://www.wired.com/feed/rss', source: 'Wired', category: 'tech-stocks', subtopic: 'Tech Stocks', tier: 2 },
+  { url: 'https://feeds.feedburner.com/TechCrunch/startups', source: 'TechCrunch Startups', category: 'tech-stocks', subtopic: 'Startups', tier: 2 },
+  { url: 'https://www.tomshardware.com/feeds/all', source: "Tom's Hardware", category: 'tech-stocks', subtopic: 'Tech Stocks', tier: 2 },
+  { url: 'https://siliconangle.com/feed/', source: 'SiliconANGLE', category: 'tech-stocks', subtopic: 'Tech Stocks', tier: 2 },
+  { url: 'https://9to5mac.com/feed/', source: '9to5Mac', category: 'tech-stocks', subtopic: 'Tech Stocks', tier: 2 },
+
+  // Macro — EXPANDED
   { url: 'https://feeds.marketwatch.com/marketwatch/topstories/', source: 'MarketWatch', category: 'investment', subtopic: 'Market Movements', tier: 2 },
   { url: 'https://feeds.marketwatch.com/marketwatch/marketpulse/', source: 'MarketWatch Pulse', category: 'macro', subtopic: 'Macro Economy', tier: 2 },
+  { url: 'https://feeds.marketwatch.com/marketwatch/economyandpolitics/', source: 'MarketWatch Economy', category: 'macro', subtopic: 'Macro Economy', tier: 2 },
   { url: 'https://www.investing.com/rss/news.rss', source: 'Investing.com', category: 'investment', subtopic: 'Market Movements', tier: 2 },
   { url: 'https://www.investing.com/rss/news_14.rss', source: 'Investing.com Commodities', category: 'commodities', subtopic: 'Gold', tier: 2 },
+  { url: 'https://www.investing.com/rss/news_301.rss', source: 'Investing.com Economy', category: 'macro', subtopic: 'Macro Economy', tier: 2 },
+  { url: 'https://tradingeconomics.com/rss/news.aspx', source: 'TradingEconomics', category: 'macro', subtopic: 'Macro Economy', tier: 2 },
+
   // Commodities
   { url: 'https://www.kitco.com/rss/gold.xml', source: 'Kitco Gold', category: 'commodities', subtopic: 'Gold', tier: 2 },
   { url: 'https://oilprice.com/rss/main', source: 'OilPrice', category: 'commodities', subtopic: 'Oil', tier: 2 },
