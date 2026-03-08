@@ -110,7 +110,8 @@ export function useNews(prefs: UserPreferences) {
   // Enrich articles with AI
   const enrichArticles = useCallback(async (mapped: NewsItem[]) => {
     try {
-      const summaries = mapped.slice(0, 20).map(a => ({
+      // Send up to 50 articles for Thai translation
+      const summaries = mapped.slice(0, 50).map(a => ({
         id: a.id,
         title: a.title,
         summary: a.summary,
