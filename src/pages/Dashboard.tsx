@@ -101,7 +101,7 @@ export default function Dashboard({ prefs, setPrefs, saved, read, onToggleSave, 
             <div className="flex items-center justify-between mb-1">
               <div className="flex items-center gap-2">
                 <Zap className="h-5 w-5 text-primary" />
-                <span className="text-sm font-bold text-primary tracking-wide">Alpha Intelligence</span>
+                <span className="text-sm font-bold text-primary tracking-wide">Alice Daily</span>
                 {isLive ? <Wifi className="h-3 w-3 text-emerald-500" /> : <WifiOff className="h-3 w-3 text-muted-foreground" />}
               </div>
               <div className="flex items-center gap-1">
