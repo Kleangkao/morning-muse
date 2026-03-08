@@ -123,7 +123,12 @@ export function useNews(prefs: UserPreferences) {
         body: { articles: summaries },
       });
 
-      if (error || !data) return;
+      if (error || !data) {
+        console.log('[Enrichment] Error or no data:', error);
+        return;
+      }
+
+      console.log('[Enrichment] Received:', Object.keys(data.thaiTitles || {}).length, 'Thai titles');
 
       const newThaiTitles = data.thaiTitles && Object.keys(data.thaiTitles).length > 0 
         ? data.thaiTitles 
@@ -132,12 +137,9 @@ export function useNews(prefs: UserPreferences) {
         ? data.thaiSummaries 
         : {};
 
-      if (Object.keys(newThaiTitles).length > 0) {
-        setThaiTitles(newThaiTitles);
-      }
-      if (Object.keys(newThaiSummaries).length > 0) {
-        setThaiSummaries(newThaiSummaries);
-      }
+      // Always update state with new translations
+      setThaiTitles(prev => ({ ...prev, ...newThaiTitles }));
+      setThaiSummaries(prev => ({ ...prev, ...newThaiSummaries }));
 
       const narrs: Narrative[] = (data.narratives || []).map((n: any) => ({
         id: n.id,
@@ -154,12 +156,12 @@ export function useNews(prefs: UserPreferences) {
         setNarratives(narrs);
       }
 
-      // Always save cache when we get Thai translations (not just when narratives exist)
+      // Always save cache when we get Thai translations
       if (Object.keys(newThaiTitles).length > 0 || Object.keys(newThaiSummaries).length > 0 || narrs.length > 0) {
         saveEnrichmentCache({
           thaiTitles: newThaiTitles,
           thaiSummaries: newThaiSummaries,
-          narratives: narrs.length > 0 ? narrs : narratives, // Keep existing narratives if none returned
+          narratives: narrs,
           fetchedAt: new Date().toISOString(),
         });
       }
