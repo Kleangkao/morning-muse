@@ -94,7 +94,7 @@ export default function Dashboard({ prefs, setPrefs, saved, read, onToggleSave, 
   const cardProps = { saved, read, onToggleSave, onMarkRead, onMuteSource, thaiTitles, thaiSummaries, lang, onOpenDetail: handleOpenDetail };
 
   return (
-    <div className="min-h-screen relative">
+    <div className="min-h-screen relative flex">
       {/* Background image with blur + overlay */}
       <div
         className="fixed inset-0 z-0 bg-cover bg-center bg-no-repeat"
