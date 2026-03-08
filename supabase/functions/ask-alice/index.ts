@@ -9,13 +9,12 @@ const corsHeaders = {
 
 function parseTimeRange(query: string): { hours: number } | null {
   const q = query.toLowerCase();
-  const hourMatch = q.match(/(?:last|past)\s+(\d+)\s*(?:hours?|hrs?|h)/);
+  const hourMatch = q.match(/(?:last|past)\s+(\d+)\s*(?:hours?|hrs?|h|ชั่วโมง|ชม)/);
   if (hourMatch) return { hours: parseInt(hourMatch[1]) };
-  const dayMatch = q.match(/(?:last|past)\s+(\d+)\s*(?:days?|d)/);
+  const dayMatch = q.match(/(?:last|past)\s+(\d+)\s*(?:days?|d|วัน)/);
   if (dayMatch) return { hours: parseInt(dayMatch[1]) * 24 };
   if (q.includes("today") || q.includes("วันนี้")) return { hours: 24 };
   if (q.includes("yesterday") || q.includes("เมื่อวาน")) return { hours: 48 };
-  // Default to last 24 hours if no time specified
   return { hours: 24 };
 }
 
@@ -31,13 +30,121 @@ function parseCategories(query: string): string[] {
   return cats;
 }
 
+// Detect if the question is about market/price data
+const MARKET_PATTERNS = [
+  /\b(price|ราคา)\b/i,
+  /\b(how much|เท่าไหร่|เท่าไร)\b/i,
+  /\b(btc|bitcoin|eth|ethereum|gold|ทองคำ|oil|น้ำมัน|nasdaq|s&p|sp500|dow|ดาวโจนส์)\s*(price|ราคา|now|ตอนนี้|today|วันนี้)?\b/i,
+  /\b(price|ราคา)\s*(of|ของ)?\s*(btc|bitcoin|eth|ethereum|gold|ทองคำ|oil|น้ำมัน)\b/i,
+];
+
+function isMarketQuery(query: string): boolean {
+  return MARKET_PATTERNS.some(p => p.test(query));
+}
+
+// Map query to CoinGecko IDs or asset type
+interface AssetQuery {
+  type: "crypto" | "traditional";
+  ids: string[];
+  labels: Record<string, string>;
+}
+
+function parseAssets(query: string): AssetQuery | null {
+  const q = query.toLowerCase();
+  const cryptoIds: string[] = [];
+  const labels: Record<string, string> = {};
+
+  if (/\b(btc|bitcoin)\b/.test(q)) { cryptoIds.push("bitcoin"); labels["bitcoin"] = "BTC"; }
+  if (/\b(eth|ethereum)\b/.test(q)) { cryptoIds.push("ethereum"); labels["ethereum"] = "ETH"; }
+  if (/\b(sol|solana)\b/.test(q)) { cryptoIds.push("solana"); labels["solana"] = "SOL"; }
+  if (/\b(bnb)\b/.test(q)) { cryptoIds.push("binancecoin"); labels["binancecoin"] = "BNB"; }
+  if (/\b(xrp|ripple)\b/.test(q)) { cryptoIds.push("ripple"); labels["ripple"] = "XRP"; }
+  if (/\b(doge|dogecoin)\b/.test(q)) { cryptoIds.push("dogecoin"); labels["dogecoin"] = "DOGE"; }
+  if (/\b(ada|cardano)\b/.test(q)) { cryptoIds.push("cardano"); labels["cardano"] = "ADA"; }
+
+  if (cryptoIds.length > 0) return { type: "crypto", ids: cryptoIds, labels };
+
+  // Traditional assets — we'll use a free proxy
+  const tradIds: string[] = [];
+  if (/\b(gold|ทองคำ|ทอง|xau)\b/.test(q)) { tradIds.push("gold"); labels["gold"] = "Gold"; }
+  if (/\b(oil|น้ำมัน|crude|wti|brent)\b/.test(q)) { tradIds.push("oil"); labels["oil"] = "Crude Oil"; }
+  if (/\b(nasdaq)\b/.test(q)) { tradIds.push("nasdaq"); labels["nasdaq"] = "NASDAQ"; }
+  if (/\b(s&p|sp500|sp 500)\b/.test(q)) { tradIds.push("sp500"); labels["sp500"] = "S&P 500"; }
+  if (/\b(dow|ดาวโจนส์)\b/.test(q)) { tradIds.push("dow"); labels["dow"] = "Dow Jones"; }
+
+  if (tradIds.length > 0) return { type: "traditional", ids: tradIds, labels };
+
+  // Default: if it's a market query but no specific asset, show BTC + ETH
+  return { type: "crypto", ids: ["bitcoin", "ethereum"], labels: { bitcoin: "BTC", ethereum: "ETH" } };
+}
+
+async function fetchCryptoPrices(ids: string[]): Promise<Record<string, { usd: number; usd_24h_change: number }>> {
+  try {
+    const resp = await fetch(
+      `https://api.coingecko.com/api/v3/simple/price?ids=${ids.join(",")}&vs_currencies=usd&include_24hr_change=true`,
+      { headers: { Accept: "application/json" } }
+    );
+    if (!resp.ok) throw new Error(`CoinGecko ${resp.status}`);
+    return await resp.json();
+  } catch (e) {
+    console.error("CoinGecko error:", e);
+    return {};
+  }
+}
+
+function formatMarketResponse(assets: AssetQuery, prices: Record<string, any>, lang: string): string {
+  if (assets.type === "crypto") {
+    const lines: string[] = [];
+    for (const id of assets.ids) {
+      const p = prices[id];
+      if (!p) continue;
+      const price = p.usd?.toLocaleString("en-US", { style: "currency", currency: "USD" });
+      const change = p.usd_24h_change?.toFixed(2);
+      const arrow = Number(change) >= 0 ? "🟢" : "🔴";
+      const sign = Number(change) >= 0 ? "+" : "";
+      lines.push(`### ${assets.labels[id]} ${arrow}\n**${price}**\n24h: ${sign}${change}%`);
+    }
+    if (lines.length === 0) {
+      return lang === "th" ? "ไม่สามารถดึงข้อมูลราคาได้ในขณะนี้" : "Unable to fetch price data at this time.";
+    }
+    const header = lang === "th" ? "## 📊 ราคาตลาดล่าสุด" : "## 📊 Latest Market Prices";
+    const footer = lang === "th" ? "\n\n*ข้อมูลจาก CoinGecko*" : "\n\n*Data from CoinGecko*";
+    return header + "\n\n" + lines.join("\n\n") + footer;
+  }
+
+  // Traditional assets - return a note that we only have crypto realtime
+  const note = lang === "th"
+    ? "## 📊 ข้อมูลตลาด\n\nขณะนี้ระบบรองรับราคาเรียลไทม์สำหรับคริปโตเท่านั้น (BTC, ETH, SOL ฯลฯ)\n\nสำหรับข้อมูล Gold, Oil, Nasdaq กรุณาถามเกี่ยวกับข่าวที่เกี่ยวข้องแทน เช่น \"ข่าวทองคำวันนี้\""
+    : "## 📊 Market Data\n\nReal-time prices are currently available for crypto assets (BTC, ETH, SOL, etc.).\n\nFor Gold, Oil, Nasdaq — try asking about related news instead, e.g. \"gold news today\"";
+  return note;
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { question, lang } = await req.json();
+    const { question, lang, history } = await req.json();
     if (!question) throw new Error("No question provided");
 
+    // --- Intent: Market Data ---
+    if (isMarketQuery(question)) {
+      const assets = parseAssets(question);
+      if (assets && assets.type === "crypto") {
+        const prices = await fetchCryptoPrices(assets.ids);
+        const answer = formatMarketResponse(assets, prices, lang);
+        return new Response(JSON.stringify({ answer, type: "market" }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      if (assets && assets.type === "traditional") {
+        const answer = formatMarketResponse(assets, {}, lang);
+        return new Response(JSON.stringify({ answer, type: "market" }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+    }
+
+    // --- Intent: News / Narrative ---
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
 
@@ -45,11 +152,9 @@ serve(async (req) => {
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // Parse query intent
     const timeRange = parseTimeRange(question);
     const categories = parseCategories(question);
 
-    // Build query
     let query = supabase
       .from("articles")
       .select("title, summary, source, category, subtopic, published_at, signal_score, impact_level, url, badges")
@@ -70,28 +175,27 @@ serve(async (req) => {
 
     if (!articles || articles.length === 0) {
       const noDataMsg = lang === "th"
-        ? "ไม่พบข่าวที่ตรงกับคำถามของคุณในช่วงเวลาที่ระบุ ลองเปลี่ยนช่วงเวลาหรือหมวดหมู่"
-        : "No articles found matching your query in the specified time range. Try adjusting the time range or category.";
-      return new Response(JSON.stringify({ answer: noDataMsg, articles: [] }), {
+        ? "ไม่พบข่าวที่ตรงกับคำถามในช่วงเวลาที่ระบุ ลองเปลี่ยนช่วงเวลาหรือหมวดหมู่"
+        : "No articles found matching your query. Try adjusting the time range or category.";
+      return new Response(JSON.stringify({ answer: noDataMsg, articles: [], type: "news" }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    // Build context from articles
-    const articleContext = articles.map((a, i) => 
+    const articleContext = articles.map((a: any, i: number) =>
       `[${i + 1}] ${a.title}\nSource: ${a.source} | Category: ${a.category} | Signal: ${a.signal_score} | Impact: ${a.impact_level}\nPublished: ${a.published_at}\nSummary: ${a.summary}\nURL: ${a.url}`
     ).join("\n\n");
 
     const systemPrompt = lang === "th"
-      ? `คุณคือ "Alice" ผู้ช่วยวิเคราะห์ข่าวการเงินแบบมืออาชีพ คล้ายนักวิเคราะห์ที่ Bloomberg Thai
+      ? `คุณคือ "Alice" ผู้ช่วยวิเคราะห์ข่าวการเงินมืออาชีพ สไตล์ Bloomberg Thai
 
 กฎ:
 - ตอบเป็นภาษาไทยเท่านั้น ยกเว้นชื่อเฉพาะ ตัวย่อ และตัวเลข (BTC, SEC, Fed, $1.8T)
 - ตอบจากข้อมูลข่าวที่ให้มาเท่านั้น ห้ามใช้ความรู้ทั่วไป
-- ใช้ภาษาสั้นกระชับ ตรงประเด็น เหมือนสำนักข่าวการเงินไทย
+- ใช้ภาษาสั้นกระชับ ตรงประเด็น
 - อ้างอิงแหล่งข่าวเสมอ
 
-รูปแบบคำตอบ (ใช้ Markdown):
+รูปแบบคำตอบ (Markdown):
 ## [หัวข้อสรุปสั้นๆ]
 
 [สรุป 1-2 ประโยค]
@@ -100,18 +204,17 @@ serve(async (req) => {
 - จุดที่ 1
 - จุดที่ 2
 - จุดที่ 3
-(3-6 จุด)
 
-### แหล่งข่าวที่เกี่ยวข้อง
+### แหล่งข่าว
 - [ชื่อข่าว](URL) — แหล่งที่มา`
-      : `You are "Alice", a professional financial news intelligence assistant, similar to a Bloomberg analyst.
+      : `You are "Alice", a professional financial news intelligence assistant, like a Bloomberg analyst.
 
 Rules:
 - Answer ONLY based on the provided news articles. Never use general knowledge.
-- Be concise and direct, like a financial news brief.
+- Be concise and direct.
 - Always cite sources.
 
-Response format (use Markdown):
+Response format (Markdown):
 ## [Short answer headline]
 
 [1-2 sentence summary]
@@ -120,14 +223,31 @@ Response format (use Markdown):
 - Point 1
 - Point 2
 - Point 3
-(3-6 bullet points)
 
 ### Related Sources
 - [Article title](URL) — Source name`;
 
-    const userPrompt = `Question: ${question}\n\nHere are the relevant news articles:\n\n${articleContext}`;
+    // Build messages array with conversation history
+    const aiMessages: { role: string; content: string }[] = [
+      { role: "system", content: systemPrompt },
+    ];
 
-    // Call AI gateway (streaming)
+    // Add conversation history (last 10 messages max)
+    if (history && Array.isArray(history)) {
+      const recentHistory = history.slice(-10);
+      for (const msg of recentHistory) {
+        if (msg.role === "user" || msg.role === "assistant") {
+          aiMessages.push({ role: msg.role, content: msg.content });
+        }
+      }
+    }
+
+    // Add current question with article context
+    aiMessages.push({
+      role: "user",
+      content: `Question: ${question}\n\nRelevant news articles:\n\n${articleContext}`,
+    });
+
     const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -136,10 +256,7 @@ Response format (use Markdown):
       },
       body: JSON.stringify({
         model: "google/gemini-3-flash-preview",
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: userPrompt },
-        ],
+        messages: aiMessages,
         stream: true,
       }),
     });
