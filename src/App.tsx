@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { usePreferences, useSavedArticles, useReadArticles } from "@/hooks/usePreferences";
+import { useLanguage } from "@/hooks/useLanguage";
 import Dashboard from "./pages/Dashboard";
 import Saved from "./pages/Saved";
 import NotFound from "./pages/NotFound";
@@ -13,7 +14,8 @@ const queryClient = new QueryClient();
 function AppRoutes() {
   const { prefs, setPrefs } = usePreferences();
   const { saved, toggle: toggleSave } = useSavedArticles();
-  const { read, toggleRead } = useReadArticles();
+  const { read, markRead } = useReadArticles();
+  const { lang, setLang } = useLanguage();
 
   const handleMuteSource = (source: string) => {
     setPrefs(p => ({
@@ -24,8 +26,8 @@ function AppRoutes() {
 
   return (
     <Routes>
-      <Route path="/" element={<Dashboard prefs={prefs} setPrefs={setPrefs} saved={saved} read={read} onToggleSave={toggleSave} onToggleRead={toggleRead} onMuteSource={handleMuteSource} />} />
-      <Route path="/saved" element={<Saved saved={saved} read={read} onToggleSave={toggleSave} onToggleRead={toggleRead} />} />
+      <Route path="/" element={<Dashboard prefs={prefs} setPrefs={setPrefs} saved={saved} read={read} onToggleSave={toggleSave} onMarkRead={markRead} onMuteSource={handleMuteSource} lang={lang} setLang={setLang} />} />
+      <Route path="/saved" element={<Saved saved={saved} read={read} onToggleSave={toggleSave} onMarkRead={markRead} lang={lang} />} />
       <Route path="*" element={<NotFound />} />
     </Routes>
   );

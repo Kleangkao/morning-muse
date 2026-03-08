@@ -3,19 +3,23 @@ import { usePreferences } from '@/hooks/usePreferences';
 import NewsCard from '@/components/NewsCard';
 import { Bookmark, ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { Language, t } from '@/hooks/useLanguage';
 
 interface Props {
   saved: string[];
   read: string[];
   onToggleSave: (id: string) => void;
-  onToggleRead: (id: string) => void;
+  onMarkRead: (id: string) => void;
+  lang: Language;
 }
 
-export default function SavedPage({ saved, read, onToggleSave, onToggleRead }: Props) {
+export default function SavedPage({ saved, read, onToggleSave, onMarkRead, lang }: Props) {
   const { prefs } = usePreferences();
-  const { articles } = useNews(prefs);
+  const { articles, thaiSummaries } = useNews(prefs);
   const navigate = useNavigate();
   const items = articles.filter(n => saved.includes(n.id));
+  const tr = t(lang);
+  const showThai = lang === 'th';
 
   return (
     <div className="min-h-screen bg-background">
@@ -27,21 +31,21 @@ export default function SavedPage({ saved, read, onToggleSave, onToggleRead }: P
           <div>
             <div className="flex items-center gap-2">
               <Bookmark className="h-4 w-4 text-primary" />
-              <h1 className="text-xl font-display">Saved</h1>
+              <h1 className="text-xl font-display">{tr.saved}</h1>
             </div>
-            <p className="text-[11px] text-muted-foreground">{items.length} article{items.length !== 1 ? 's' : ''}</p>
+            <p className="text-[11px] text-muted-foreground">{items.length} {tr.articles}</p>
           </div>
         </div>
       </header>
 
       <main className="px-4 py-4 space-y-2 max-w-2xl mx-auto">
         {items.map((item, i) => (
-          <NewsCard key={item.id} item={item} saved={true} isRead={read.includes(item.id)} onToggleSave={onToggleSave} onToggleRead={onToggleRead} index={i} />
+          <NewsCard key={item.id} item={item} saved={true} isRead={read.includes(item.id)} onToggleSave={onToggleSave} onMarkRead={onMarkRead} index={i} showThai={showThai} thaiSummary={thaiSummaries[item.id]} />
         ))}
         {items.length === 0 && (
           <div className="text-center py-20 text-muted-foreground">
-            <p className="text-lg font-display">Nothing saved yet</p>
-            <p className="text-sm mt-1">Bookmark articles from your feed.</p>
+            <p className="text-lg font-display">{tr.nothingSaved}</p>
+            <p className="text-sm mt-1">{tr.bookmarkFromFeed}</p>
           </div>
         )}
       </main>

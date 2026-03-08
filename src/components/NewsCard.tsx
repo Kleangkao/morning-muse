@@ -1,5 +1,6 @@
+import { useEffect, useRef } from 'react';
 import { NewsItem, SmartBadge } from '@/lib/types';
-import { Bookmark, BookmarkCheck, Clock, Check, Circle, VolumeX, TrendingUp, TrendingDown, Minus } from 'lucide-react';
+import { Bookmark, BookmarkCheck, Clock, VolumeX, TrendingUp, TrendingDown, Minus, ExternalLink } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 interface Props {
@@ -7,11 +8,12 @@ interface Props {
   saved: boolean;
   isRead: boolean;
   onToggleSave: (id: string) => void;
-  onToggleRead: (id: string) => void;
+  onMarkRead: (id: string) => void;
   onMuteSource?: (source: string) => void;
   index?: number;
   compact?: boolean;
   thaiSummary?: string;
+  showThai?: boolean;
 }
 
 const categoryColors: Record<string, string> = {
@@ -39,15 +41,44 @@ const directionIcon = {
   neutral: <Minus className="h-3 w-3 text-muted-foreground" />,
 };
 
-export default function NewsCard({ item, saved, isRead, onToggleSave, onToggleRead, onMuteSource, index = 0, compact, thaiSummary }: Props) {
+export default function NewsCard({ item, saved, isRead, onToggleSave, onMarkRead, onMuteSource, index = 0, compact, thaiSummary, showThai }: Props) {
   const timeAgo = getTimeAgo(item.publishedAt);
+  const ref = useRef<HTMLElement>(null);
+
+  // Auto-mark read on viewport visibility
+  useEffect(() => {
+    if (isRead) return;
+    const el = ref.current;
+    if (!el) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          onMarkRead(item.id);
+          observer.disconnect();
+        }
+      },
+      { threshold: 0.6 }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [isRead, item.id, onMarkRead]);
+
+  const handleCardClick = () => {
+    onMarkRead(item.id);
+    window.open(item.url, '_blank', 'noopener,noreferrer');
+  };
+
+  const summaryText = showThai && thaiSummary ? thaiSummary : item.summary;
 
   return (
     <motion.article
+      ref={ref}
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.02, duration: 0.25 }}
-      className={`glass-card rounded-lg overflow-hidden transition-all ${isRead ? 'opacity-50' : ''}`}
+      onClick={handleCardClick}
+      className={`glass-card rounded-lg overflow-hidden transition-all cursor-pointer hover:shadow-md hover:border-primary/20 ${isRead ? 'opacity-60' : ''}`}
     >
       <div className={`${compact ? 'p-3' : 'p-4'} space-y-2`}>
         {/* Badges row */}
@@ -72,22 +103,16 @@ export default function NewsCard({ item, saved, isRead, onToggleSave, onToggleRe
         </div>
 
         {/* Headline */}
-        <h3 className={`font-display ${compact ? 'text-[15px]' : 'text-[17px]'} leading-snug font-medium text-foreground`}>
-          {item.title}
+        <h3 className={`font-display ${compact ? 'text-[15px]' : 'text-[17px]'} leading-snug font-medium text-foreground flex items-start gap-1.5`}>
+          <span className="flex-1">{item.title}</span>
+          <ExternalLink className="h-3.5 w-3.5 shrink-0 mt-0.5 text-muted-foreground" />
         </h3>
 
         {/* Summary */}
         {!compact && (
-          <div className="space-y-1">
-            {thaiSummary && (
-              <p className="text-[13px] leading-relaxed text-foreground/80">
-                🇹🇭 {thaiSummary}
-              </p>
-            )}
-            <p className="text-[13px] leading-relaxed text-muted-foreground">
-              {item.summary}
-            </p>
-          </div>
+          <p className="text-[13px] leading-relaxed text-muted-foreground">
+            {summaryText}
+          </p>
         )}
 
         {/* Bottom row */}
@@ -107,14 +132,7 @@ export default function NewsCard({ item, saved, isRead, onToggleSave, onToggleRe
           </div>
           <div className="flex items-center gap-0.5">
             <button
-              onClick={() => onToggleRead(item.id)}
-              className="rounded-full p-1.5 transition-colors hover:bg-secondary"
-              aria-label={isRead ? 'Mark unread' : 'Mark read'}
-            >
-              {isRead ? <Check className="h-3.5 w-3.5 text-emerald-600" /> : <Circle className="h-3.5 w-3.5 text-muted-foreground" />}
-            </button>
-            <button
-              onClick={() => onToggleSave(item.id)}
+              onClick={(e) => { e.stopPropagation(); onToggleSave(item.id); }}
               className="rounded-full p-1.5 transition-colors hover:bg-secondary"
               aria-label={saved ? 'Unsave' : 'Save'}
             >
@@ -122,7 +140,7 @@ export default function NewsCard({ item, saved, isRead, onToggleSave, onToggleRe
             </button>
             {onMuteSource && (
               <button
-                onClick={() => onMuteSource(item.source)}
+                onClick={(e) => { e.stopPropagation(); onMuteSource(item.source); }}
                 className="rounded-full p-1.5 transition-colors hover:bg-secondary"
                 aria-label={`Mute ${item.source}`}
               >

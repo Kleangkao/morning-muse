@@ -1,6 +1,7 @@
-import { NewsItem, Narrative, TopicCategory } from '@/lib/types';
-import { Zap, TrendingUp, BarChart3, Clock, Flame, Settings, Search, X, RefreshCw, Wifi, WifiOff } from 'lucide-react';
+import { NewsItem, Narrative } from '@/lib/types';
+import { Zap, TrendingUp, BarChart3, Flame } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { Language, t } from '@/hooks/useLanguage';
 
 interface Props {
   articles: NewsItem[];
@@ -11,16 +12,18 @@ interface Props {
   strongestCategory: string;
   lastUpdated: string | null;
   isLive: boolean;
+  lang: Language;
 }
 
 export default function DashboardHeader({
-  articles, narratives, newCount, highImpactCount, hottestNarrative, strongestCategory, lastUpdated, isLive,
+  newCount, highImpactCount, hottestNarrative, strongestCategory, lang,
 }: Props) {
+  const tr = t(lang);
   const stats = [
-    { icon: Zap, label: 'New', value: newCount, color: 'text-primary' },
-    { icon: TrendingUp, label: 'High Impact', value: highImpactCount, color: 'text-amber-600' },
-    { icon: Flame, label: 'Hot Narrative', value: hottestNarrative, color: 'text-red-600' },
-    { icon: BarChart3, label: 'Strongest', value: strongestCategory, color: 'text-emerald-600' },
+    { icon: Zap, label: tr.new, value: newCount, color: 'text-primary' },
+    { icon: TrendingUp, label: tr.highImpact, value: highImpactCount, color: 'text-amber-600' },
+    { icon: Flame, label: tr.hotNarrative, value: hottestNarrative, color: 'text-red-600' },
+    { icon: BarChart3, label: tr.strongest, value: strongestCategory, color: 'text-emerald-600' },
   ];
 
   return (
