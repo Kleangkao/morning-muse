@@ -1,14 +1,12 @@
-import { NewsItem, Narrative } from '@/lib/types';
-import { Zap, TrendingUp, BarChart3, Flame } from 'lucide-react';
+import { NewsItem } from '@/lib/types';
+import { Zap, TrendingUp, BarChart3 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Language, t } from '@/hooks/useLanguage';
 
 interface Props {
   articles: NewsItem[];
-  narratives: Narrative[];
   newCount: number;
   highImpactCount: number;
-  hottestNarrative: string;
   strongestCategory: string;
   lastUpdated: string | null;
   isLive: boolean;
@@ -16,18 +14,17 @@ interface Props {
 }
 
 export default function DashboardHeader({
-  newCount, highImpactCount, hottestNarrative, strongestCategory, lang,
+  newCount, highImpactCount, strongestCategory, lang,
 }: Props) {
   const tr = t(lang);
   const stats = [
     { icon: Zap, label: tr.new, value: newCount, color: 'text-primary' },
     { icon: TrendingUp, label: tr.highImpact, value: highImpactCount, color: 'text-amber-600' },
-    { icon: Flame, label: tr.hotNarrative, value: hottestNarrative, color: 'text-red-600' },
     { icon: BarChart3, label: tr.strongest, value: strongestCategory, color: 'text-emerald-600' },
   ];
 
   return (
-    <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
+    <div className="grid grid-cols-3 gap-2">
       {stats.map((s, i) => (
         <motion.div
           key={s.label}

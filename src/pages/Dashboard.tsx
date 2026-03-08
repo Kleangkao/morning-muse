@@ -4,7 +4,7 @@ import { useNews } from '@/hooks/useNews';
 import { Language, t } from '@/hooks/useLanguage';
 
 import NewsCard from '@/components/NewsCard';
-import NarrativeCard from '@/components/NarrativeCard';
+
 import DashboardHeader from '@/components/DashboardHeader';
 import SettingsPanel from '@/components/SettingsPanel';
 import QuickScan from '@/components/QuickScan';
@@ -77,8 +77,7 @@ export default function Dashboard({ prefs, setPrefs, saved, read, onToggleSave, 
 
   const unreadCount = articles.filter(a => !read.includes(a.id)).length;
   const highImpactCount = articles.filter(a => a.impactLevel === 'high').length;
-  const categoryNarratives = activeFilter === 'all' ? liveNarratives : liveNarratives.filter(n => n.category === activeFilter);
-  const hottestNarrative = categoryNarratives.find(n => n.momentum === 'Hot')?.title ?? categoryNarratives[0]?.title ?? '';
+  
   const categoryCounts = articles.reduce<Record<string, number>>((acc, a) => { acc[a.category] = (acc[a.category] || 0) + 1; return acc; }, {});
   const strongestCategory = Object.entries(categoryCounts).sort((a, b) => b[1] - a[1])[0]?.[0] ?? '';
 
@@ -140,8 +139,8 @@ export default function Dashboard({ prefs, setPrefs, saved, read, onToggleSave, 
             </div>
           )}
 
-          <DashboardHeader articles={articles} narratives={liveNarratives} newCount={unreadCount} highImpactCount={highImpactCount}
-            hottestNarrative={hottestNarrative} strongestCategory={categoryLabels[strongestCategory] || strongestCategory} lastUpdated={lastUpdated} isLive={isLive} lang={lang} />
+          <DashboardHeader articles={articles} newCount={unreadCount} highImpactCount={highImpactCount}
+            strongestCategory={categoryLabels[strongestCategory] || strongestCategory} lastUpdated={lastUpdated} isLive={isLive} lang={lang} />
 
           {/* Quick Scan — first */}
           {activeFilter === 'all' && <QuickScan articles={articles} narratives={liveNarratives} lang={lang} />}
@@ -151,8 +150,7 @@ export default function Dashboard({ prefs, setPrefs, saved, read, onToggleSave, 
 
           {activeFilter === 'all' ? (
             <>
-              {/* Narratives — category-aware */}
-              <NarrativeCard narratives={liveNarratives} lang={lang} categoryFilter="all" />
+              
 
               {/* Live Alpha Feed */}
               {topSignals.length > 0 && (
@@ -182,8 +180,7 @@ export default function Dashboard({ prefs, setPrefs, saved, read, onToggleSave, 
             </>
           ) : (
             <>
-              {/* Category-filtered narratives — hides if none match */}
-              <NarrativeCard narratives={liveNarratives} lang={lang} categoryFilter={activeFilter} />
+              
               <div className="space-y-2">
                 {signalArticles.map((item, i) => (
                   <NewsCard key={item.id} item={item} saved={saved.includes(item.id)} isRead={read.includes(item.id)} onToggleSave={onToggleSave} onMarkRead={onMarkRead} onMuteSource={onMuteSource} onOpenDetail={handleOpenDetail} index={i} showThai={showThai} thaiTitle={thaiTitles[item.id]} thaiSummary={thaiSummaries[item.id]} />
