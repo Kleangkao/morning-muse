@@ -25,7 +25,6 @@ export default function QuickScan({ articles, narratives, lang }: Props) {
   useEffect(() => {
     if (articles.length === 0) return;
 
-    // Check lang-specific cache
     try {
       const raw = localStorage.getItem(cacheKey);
       if (raw) {
@@ -56,31 +55,31 @@ export default function QuickScan({ articles, narratives, lang }: Props) {
 
   return (
     <motion.section
-      initial={{ opacity: 0, y: 8 }}
+      initial={{ opacity: 0, y: 6 }}
       animate={{ opacity: 1, y: 0 }}
-      className="rounded-lg border border-primary/20 bg-card/90 backdrop-blur-sm p-4 space-y-2.5 shadow-sm"
+      className="glass-card rounded-xl p-5 space-y-3"
     >
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2.5">
         <Zap className="h-4 w-4 text-primary" />
-        <h2 className="font-display text-lg">{title}</h2>
-        <span className="text-[10px] text-muted-foreground flex items-center gap-1 ml-auto">
-          <Clock className="h-2.5 w-2.5" />
+        <h2 className="font-display text-lg font-semibold tracking-[-0.01em]">{title}</h2>
+        <span className="text-[11px] text-muted-foreground flex items-center gap-1 ml-auto font-light">
+          <Clock className="h-3 w-3" />
           {lang === 'th' ? '30 วิ' : '30s read'}
         </span>
       </div>
-      <p className="text-[11px] text-muted-foreground -mt-1">{subtitle}</p>
+      <p className="text-[12px] text-muted-foreground font-light">{subtitle}</p>
 
       {loading ? (
-        <div className="space-y-2">
+        <div className="space-y-2.5 pt-1">
           {[1,2,3,4].map(i => (
-            <div key={i} className="h-3.5 bg-muted rounded animate-pulse" style={{ width: `${95 - i * 8}%` }} />
+            <div key={i} className="h-4 bg-muted rounded-md animate-pulse" style={{ width: `${95 - i * 8}%` }} />
           ))}
         </div>
       ) : (
-        <ul className="space-y-1.5">
+        <ul className="space-y-2.5 pt-1">
           {bullets.map((b, i) => (
-            <li key={i} className="flex gap-2 text-[13px] leading-relaxed text-foreground/85">
-              <span className="shrink-0 text-primary font-bold mt-0.5">▸</span>
+            <li key={i} className="flex gap-2.5 text-[14px] leading-[1.65] text-foreground/90">
+              <span className="shrink-0 text-primary font-semibold mt-0.5">▸</span>
               <span>{b}</span>
             </li>
           ))}

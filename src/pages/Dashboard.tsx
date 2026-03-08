@@ -4,7 +4,6 @@ import { useNews } from '@/hooks/useNews';
 import { Language, t } from '@/hooks/useLanguage';
 
 import NewsCard from '@/components/NewsCard';
-
 import DashboardHeader from '@/components/DashboardHeader';
 import SettingsPanel from '@/components/SettingsPanel';
 import QuickScan from '@/components/QuickScan';
@@ -63,7 +62,6 @@ export default function Dashboard({ prefs, setPrefs, saved, read, onToggleSave, 
     });
   }, [liveArticles, activeFilter, search]);
 
-  // Separate X signal articles from regular articles (always from full list, then filter by active category)
   const xArticles = useMemo(() => {
     const all = liveArticles.filter(a => a.source.toLowerCase().startsWith('x @'));
     if (activeFilter === 'all') return all;
@@ -95,67 +93,59 @@ export default function Dashboard({ prefs, setPrefs, saved, read, onToggleSave, 
 
   return (
     <div className="min-h-screen relative flex">
-      {/* Background image with blur + overlay */}
-      <div className="fixed inset-0 z-0" style={{ backgroundColor: '#FFF9BE' }} />
+      <div className="fixed inset-0 z-0 bg-background" />
       <div className="relative z-10 flex-1 min-w-0">
         {/* Header */}
-        <header className="sticky top-0 z-40 bg-card/90 backdrop-blur-md border-b border-border/50 shadow-sm">
-          <div className="px-4 pt-3 pb-2">
-            <div className="flex items-center justify-between mb-1">
-              <div className="flex items-center gap-2">
-                <Zap className="h-5 w-5 text-primary" />
-                <span className="text-sm font-bold text-primary tracking-wide">Alice Daily</span>
+        <header className="sticky top-0 z-40 bg-card/95 backdrop-blur-md border-b border-border/60">
+          <div className="px-5 pt-4 pb-2.5">
+            <div className="flex items-center justify-between mb-1.5">
+              <div className="flex items-center gap-2.5">
+                <Zap className="h-4 w-4 text-primary" />
+                <span className="text-sm font-semibold text-foreground tracking-tight">Alice Daily</span>
                 {isLive ? <Wifi className="h-3 w-3 text-emerald-500" /> : <WifiOff className="h-3 w-3 text-muted-foreground" />}
               </div>
-              <div className="flex items-center gap-1">
-                <div className="flex items-center rounded-full bg-secondary p-0.5 mr-1">
-                  <button onClick={() => setLang('en')} className={`rounded-full px-2 py-0.5 text-[10px] font-bold transition-all ${lang === 'en' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground'}`}>EN</button>
-                  <button onClick={() => setLang('th')} className={`rounded-full px-2 py-0.5 text-[10px] font-bold transition-all ${lang === 'th' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground'}`}>TH</button>
+              <div className="flex items-center gap-0.5">
+                <div className="flex items-center rounded-lg bg-secondary p-0.5 mr-1.5">
+                  <button onClick={() => setLang('en')} className={`rounded-md px-2.5 py-1 text-[11px] font-medium transition-all ${lang === 'en' ? 'bg-card text-foreground shadow-sm' : 'text-muted-foreground'}`}>EN</button>
+                  <button onClick={() => setLang('th')} className={`rounded-md px-2.5 py-1 text-[11px] font-medium transition-all ${lang === 'th' ? 'bg-card text-foreground shadow-sm' : 'text-muted-foreground'}`}>TH</button>
                 </div>
-                <button onClick={refresh} disabled={isLoading} className="rounded-full p-2 hover:bg-secondary transition-colors"><RefreshCw className={`h-4 w-4 text-muted-foreground ${isLoading ? 'animate-spin' : ''}`} /></button>
-                <button onClick={() => setShowSearch(!showSearch)} className="rounded-full p-2 hover:bg-secondary transition-colors">{showSearch ? <X className="h-4 w-4 text-foreground" /> : <Search className="h-4 w-4 text-muted-foreground" />}</button>
-                <button onClick={() => navigate('/saved')} className="rounded-full p-2 hover:bg-secondary transition-colors"><Bookmark className="h-4 w-4 text-muted-foreground" /></button>
-                <button onClick={() => setSettingsOpen(true)} className="rounded-full p-2 hover:bg-secondary transition-colors"><Settings className="h-4 w-4 text-muted-foreground" /></button>
+                <button onClick={refresh} disabled={isLoading} className="rounded-lg p-2 hover:bg-secondary transition-colors"><RefreshCw className={`h-4 w-4 text-muted-foreground ${isLoading ? 'animate-spin' : ''}`} /></button>
+                <button onClick={() => setShowSearch(!showSearch)} className="rounded-lg p-2 hover:bg-secondary transition-colors">{showSearch ? <X className="h-4 w-4 text-foreground" /> : <Search className="h-4 w-4 text-muted-foreground" />}</button>
+                <button onClick={() => navigate('/saved')} className="rounded-lg p-2 hover:bg-secondary transition-colors"><Bookmark className="h-4 w-4 text-muted-foreground" /></button>
+                <button onClick={() => setSettingsOpen(true)} className="rounded-lg p-2 hover:bg-secondary transition-colors"><Settings className="h-4 w-4 text-muted-foreground" /></button>
               </div>
             </div>
-            <p className="text-[11px] text-muted-foreground">{today} · {unreadCount} {tr.unread} · {tr.updated} {formatLastUpdated(lastUpdated, lang)}</p>
+            <p className="text-[12px] text-muted-foreground font-light">{today} · {unreadCount} {tr.unread} · {tr.updated} {formatLastUpdated(lastUpdated, lang)}</p>
             {showSearch && (
               <input autoFocus value={search} onChange={e => setSearch(e.target.value)} placeholder={tr.searchPlaceholder}
-                className="mt-2 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-ring" />
+                className="mt-3 w-full rounded-xl border border-input bg-background px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-ring/30 transition-all" />
             )}
           </div>
-          <div className="flex gap-1.5 px-4 pb-2 overflow-x-auto scrollbar-none">
+          <div className="flex gap-2 px-5 pb-3 overflow-x-auto scrollbar-none">
             {FILTER_TABS.map(tab => (
               <button key={tab.id} onClick={() => setActiveFilter(tab.id)}
-                className={`shrink-0 rounded-full px-3 py-1 text-[11px] font-semibold transition-all ${activeFilter === tab.id ? 'bg-primary text-primary-foreground' : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'}`}>
+                className={`shrink-0 rounded-lg px-3.5 py-1.5 text-[12px] font-medium transition-all ${activeFilter === tab.id ? 'bg-foreground text-background' : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'}`}>
                 {tab.id === 'all' ? tr.allFilter : tab.label}
               </button>
             ))}
           </div>
         </header>
 
-        <main className="px-4 py-4 max-w-2xl mx-auto space-y-5">
+        <main className="px-5 py-5 max-w-2xl mx-auto space-y-6">
           {isLoading && (
-            <div className="text-center py-4">
+            <div className="text-center py-6">
               <RefreshCw className="h-5 w-5 text-primary animate-spin mx-auto mb-2" />
-              <p className="text-sm text-muted-foreground">{tr.fetchingIntelligence}</p>
+              <p className="text-sm text-muted-foreground font-light">{tr.fetchingIntelligence}</p>
             </div>
           )}
 
           <DashboardHeader articles={articles} newCount={unreadCount} highImpactCount={highImpactCount}
             strongestCategory={categoryLabels[strongestCategory] || strongestCategory} lastUpdated={lastUpdated} isLive={isLive} lang={lang} />
 
-          {/* Quick Scan — first */}
           {activeFilter === 'all' && <QuickScan articles={articles} narratives={liveNarratives} lang={lang} />}
-
-          {/* X Signals — always visible, filtered by active category */}
-          
 
           {activeFilter === 'all' ? (
             <>
-              
-
-              {/* Live Alpha Feed */}
               {topSignals.length > 0 && (
                 <FeedSection title={tr.liveAlphaFeed} items={topSignals} {...cardProps} />
               )}
@@ -172,8 +162,8 @@ export default function Dashboard({ prefs, setPrefs, saved, read, onToggleSave, 
 
               {lowSignal.length > 0 && (
                 <section>
-                  <h2 className="font-display text-lg mb-2 text-muted-foreground">{tr.lowerSignal}</h2>
-                  <div className="space-y-2">
+                  <h2 className="font-display text-lg font-semibold mb-3 text-muted-foreground tracking-[-0.01em]">{tr.lowerSignal}</h2>
+                  <div className="space-y-3">
                     {lowSignal.map((item, i) => (
                       <NewsCard key={item.id} item={item} saved={saved.includes(item.id)} isRead={read.includes(item.id)} onToggleSave={onToggleSave} onMarkRead={onMarkRead} onMuteSource={onMuteSource} onOpenDetail={handleOpenDetail} index={i} compact lang={lang} thaiTitle={thaiTitles[item.id]} thaiSummary={thaiSummaries[item.id]} />
                     ))}
@@ -182,20 +172,17 @@ export default function Dashboard({ prefs, setPrefs, saved, read, onToggleSave, 
               )}
             </>
           ) : (
-            <>
-              
-              <div className="space-y-2">
-                {signalArticles.map((item, i) => (
-                  <NewsCard key={item.id} item={item} saved={saved.includes(item.id)} isRead={read.includes(item.id)} onToggleSave={onToggleSave} onMarkRead={onMarkRead} onMuteSource={onMuteSource} onOpenDetail={handleOpenDetail} index={i} lang={lang} thaiTitle={thaiTitles[item.id]} thaiSummary={thaiSummaries[item.id]} />
-                ))}
-              </div>
-            </>
+            <div className="space-y-3">
+              {signalArticles.map((item, i) => (
+                <NewsCard key={item.id} item={item} saved={saved.includes(item.id)} isRead={read.includes(item.id)} onToggleSave={onToggleSave} onMarkRead={onMarkRead} onMuteSource={onMuteSource} onOpenDetail={handleOpenDetail} index={i} lang={lang} thaiTitle={thaiTitles[item.id]} thaiSummary={thaiSummaries[item.id]} />
+              ))}
+            </div>
           )}
 
           {articles.length === 0 && !isLoading && (
             <div className="text-center py-20 text-muted-foreground">
-              <p className="text-lg font-display">{tr.noResults}</p>
-              <p className="text-sm mt-1">{search ? tr.tryDifferentSearch : tr.adjustFilters}</p>
+              <p className="text-lg font-display font-semibold">{tr.noResults}</p>
+              <p className="text-sm mt-2 font-light">{search ? tr.tryDifferentSearch : tr.adjustFilters}</p>
             </div>
           )}
         </main>
@@ -225,8 +212,8 @@ function FeedSection({ title, items, saved, read, onToggleSave, onMarkRead, onMu
 }) {
   return (
     <section>
-      <h2 className="font-display text-xl mb-2">{title}</h2>
-      <div className="space-y-2">
+      <h2 className="font-display text-xl font-semibold mb-3 tracking-[-0.02em]">{title}</h2>
+      <div className="space-y-3">
         {items.map((item, i) => (
           <NewsCard key={item.id} item={item} saved={saved.includes(item.id)} isRead={read.includes(item.id)} onToggleSave={onToggleSave} onMarkRead={onMarkRead} onMuteSource={onMuteSource} onOpenDetail={onOpenDetail} index={i} lang={lang || 'en'} thaiTitle={thaiTitles?.[item.id]} thaiSummary={thaiSummaries?.[item.id]} />
         ))}
