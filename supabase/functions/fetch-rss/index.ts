@@ -527,13 +527,30 @@ function extractEntities(title: string): string[] {
 const AGGRESSIVE_DEDUP_CATEGORIES = new Set(['macro', 'commodities', 'investment']);
 const AGGRESSIVE_DEDUP_KEYWORDS = [
   'etf', 'oil', 'gold', 'crude', 'bitcoin etf', 'regulation', 'fed', 'interest rate',
-  'inflation', 'tariff', 'sanctions', 'stablecoin', 'cbdc', 'sec ',
+  'inflation', 'tariff', 'sanctions', 'stablecoin', 'cbdc', 'sec ', 'iran', 'war',
+  'middle east', 'barrel', 'opec', 'aramco',
 ];
 
 function isAggressiveDedupCandidate(article: NormalizedArticle): boolean {
   if (AGGRESSIVE_DEDUP_CATEGORIES.has(article.category)) return true;
   const text = `${article.title} ${article.summary}`.toLowerCase();
   return AGGRESSIVE_DEDUP_KEYWORDS.some(k => text.includes(k));
+}
+
+// ─── Source Family Grouping ───
+// Treat sub-feeds from same publisher as same source for dedup
+function getSourceFamily(source: string): string {
+  if (source.startsWith('Investing.com')) return 'Investing.com';
+  if (source.startsWith('CNBC')) return 'CNBC';
+  if (source.startsWith('Reuters')) return 'Reuters';
+  if (source.startsWith('MarketWatch')) return 'MarketWatch';
+  if (source.startsWith('CoinDesk') || source === 'X @CoinDesk') return 'CoinDesk';
+  if (source.startsWith('CoinTelegraph') || source === 'X @Cointelegraph') return 'CoinTelegraph';
+  if (source.startsWith('The Verge') || source === 'X @verge') return 'The Verge';
+  if (source.startsWith('TechCrunch') || source === 'X @TechCrunch') return 'TechCrunch';
+  if (source.startsWith('Ars Technica') || source === 'X @ArsTechnica') return 'Ars Technica';
+  if (source.startsWith('BBC')) return 'BBC';
+  return source;
 }
 
 function similarityScore(a: string, b: string): number {
