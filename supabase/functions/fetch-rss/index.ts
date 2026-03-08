@@ -696,7 +696,7 @@ const RELEVANCE_OVERRIDES: RegExp[] = [
   /\b(?:ipo|valuation|billion|million|acquisition|merger|stock|shares|revenue|earnings)\b/i,
   /\b(?:tariff|tax|lawsuit|regulation|antitrust|ban|sanction)\b/i,
   /\b(?:etf|fed|inflation|interest\s*rate|gdp)\b/i,
-  /\b(?:ai|artificial\s*intelligence|llm|gpt|claude|gemini|openai|anthropic)\b/i,
+  /\b(?:artificial\s*intelligence|llm|gpt|claude|gemini|openai|anthropic)\b/i,  // require specific AI terms, not just "ai"
 ];
 
 function isIrrelevantContent(title: string, summary: string): boolean {
