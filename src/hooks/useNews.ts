@@ -3,7 +3,7 @@ import { NewsItem, Narrative, UserPreferences } from '@/lib/types';
 import { demoNews, demoNarratives } from '@/lib/demo-data';
 import { supabase } from '@/integrations/supabase/client';
 
-const ENRICHMENT_CACHE_KEY = 'morning-feed-enrichment-v2';
+const ENRICHMENT_CACHE_KEY = 'morning-feed-enrichment-v3'; // Bump version to force re-enrichment
 const ENRICHMENT_CACHE_DURATION = 30 * 60 * 1000; // 30 min
 const UI_POLL_INTERVAL = 60 * 1000; // 1 minute
 const RSS_FETCH_INTERVAL = 5 * 60 * 1000; // 5 minutes
