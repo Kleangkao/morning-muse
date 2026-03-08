@@ -9,9 +9,9 @@ interface Props {
 }
 
 const momentumConfig = {
-  'Hot': { icon: Flame, color: 'text-red-600 bg-red-500/10', label: 'Hot' },
-  'Rising': { icon: TrendingUp, color: 'text-emerald-600 bg-emerald-500/10', label: 'Rising' },
-  'Watchlist': { icon: Eye, color: 'text-amber-600 bg-amber-500/10', label: 'Watch' },
+  'Hot': { icon: Flame, color: 'text-red-600 bg-red-500/10', label: 'Hot', thLabel: 'ร้อน' },
+  'Rising': { icon: TrendingUp, color: 'text-emerald-600 bg-emerald-500/10', label: 'Rising', thLabel: 'กำลังขึ้น' },
+  'Watchlist': { icon: Eye, color: 'text-amber-600 bg-amber-500/10', label: 'Watch', thLabel: 'จับตา' },
 };
 
 const categoryColors: Record<string, string> = {
@@ -26,10 +26,18 @@ const categoryColors: Record<string, string> = {
 export default function NarrativeCard({ narratives, lang }: Props) {
   if (!narratives.length) return null;
   const tr = t(lang);
+  const showThai = lang === 'th';
+
+  const subtitle = showThai
+    ? 'รูปแบบและธีมจากหลายข่าว'
+    : 'Patterns and themes across multiple stories';
 
   return (
     <section>
-      <h2 className="font-display text-xl mb-3">{tr.emergingNarratives}</h2>
+      <div className="mb-2">
+        <h2 className="font-display text-xl">{tr.emergingNarratives}</h2>
+        <p className="text-[11px] text-muted-foreground">{subtitle}</p>
+      </div>
       <div className="space-y-2">
         {narratives.map((n, i) => {
           const m = momentumConfig[n.momentum];
@@ -48,7 +56,7 @@ export default function NarrativeCard({ narratives, lang }: Props) {
                     <h3 className="font-display text-[15px] font-medium text-foreground truncate">{n.title}</h3>
                     <span className={`shrink-0 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase ${m.color}`}>
                       <Icon className="h-3 w-3" />
-                      {m.label}
+                      {showThai ? m.thLabel : m.label}
                     </span>
                   </div>
                   <p className="text-[12px] leading-relaxed text-muted-foreground">{n.whyItMatters}</p>

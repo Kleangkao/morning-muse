@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { NewsItem, SmartBadge } from '@/lib/types';
-import { Bookmark, BookmarkCheck, Clock, VolumeX, TrendingUp, TrendingDown, Minus, ChevronRight } from 'lucide-react';
+import { Bookmark, BookmarkCheck, Clock, VolumeX, TrendingUp, TrendingDown, Minus, ExternalLink } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 interface Props {
@@ -79,6 +79,9 @@ export default function NewsCard({ item, saved, isRead, onToggleSave, onMarkRead
   const summaryText = showThai && thaiSummary ? thaiSummary : item.summary;
   const hasImage = item.imageUrl && !imgError;
 
+  // Determine if this is an X/Twitter source
+  const isXSource = item.source.toLowerCase() === 'x' || item.source.toLowerCase() === 'twitter';
+
   return (
     <motion.article
       ref={ref}
@@ -86,74 +89,82 @@ export default function NewsCard({ item, saved, isRead, onToggleSave, onMarkRead
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.02, duration: 0.25 }}
       onClick={handleCardClick}
-      className={`glass-card rounded-lg overflow-hidden transition-all cursor-pointer hover:shadow-md hover:border-primary/20 ${isRead ? 'opacity-60' : ''}`}
+      className={`glass-card rounded-lg overflow-hidden transition-all cursor-pointer hover:shadow-md hover:border-primary/20 ${isRead ? 'opacity-60' : ''} ${isXSource ? 'border-l-[3px] border-l-blue-400' : ''}`}
     >
-      {hasImage && !compact && (
-        <div className="w-full h-40 overflow-hidden bg-muted">
-          <img src={item.imageUrl} alt="" className="w-full h-full object-cover" onError={() => setImgError(true)} loading="lazy" />
-        </div>
-      )}
-
-      <div className={`${compact ? 'p-3' : 'p-4'} space-y-2`}>
-        <div className="flex items-center gap-1.5 flex-wrap">
-          <span className={`inline-block rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${categoryColors[item.category] || 'bg-secondary text-secondary-foreground'}`}>
-            {item.category === 'tech-stocks' ? 'Tech' : item.category}
-          </span>
-          {item.subtopic && (
-            <span className="rounded-full bg-secondary px-2 py-0.5 text-[10px] font-medium text-secondary-foreground">{item.subtopic}</span>
-          )}
-          {item.badges?.map(badge => (
-            <span key={badge} className={`rounded-full border px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider ${badgeStyles[badge]}`}>{badge}</span>
-          ))}
-          <span className="ml-auto flex items-center gap-1 text-[10px] text-muted-foreground whitespace-nowrap">
-            <Clock className="h-3 w-3" />
-            {timeAgo}
-          </span>
-        </div>
-
-        <h3 className={`font-display ${compact ? 'text-[15px]' : 'text-[17px]'} leading-snug font-medium text-foreground flex items-start gap-1.5`}>
-          <span className="flex-1">{displayTitle}</span>
-          <ChevronRight className="h-4 w-4 shrink-0 mt-0.5 text-muted-foreground/50" />
-        </h3>
-
-        {secondaryTitle && !compact && (
-          <p className="text-[12px] text-muted-foreground/70 leading-snug -mt-1">{secondaryTitle}</p>
-        )}
-
-        {!compact && (
-          <p className="text-[13px] leading-relaxed text-muted-foreground line-clamp-2">{summaryText}</p>
-        )}
-
-        <div className="flex items-center justify-between pt-0.5">
-          <div className="flex items-center gap-2">
-            {compact && hasImage && (
-              <img src={item.imageUrl} alt="" className="w-8 h-8 rounded object-cover" onError={() => setImgError(true)} loading="lazy" />
+      <div className={`${compact ? 'p-3' : 'p-4'} flex gap-3`}>
+        {/* Text content — dominant */}
+        <div className="flex-1 min-w-0 space-y-1.5">
+          {/* Badges row */}
+          <div className="flex items-center gap-1.5 flex-wrap">
+            <span className={`inline-block rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${categoryColors[item.category] || 'bg-secondary text-secondary-foreground'}`}>
+              {item.category === 'tech-stocks' ? 'Tech' : item.category}
+            </span>
+            {isXSource && (
+              <span className="inline-flex items-center gap-0.5 rounded-full bg-blue-500/10 text-blue-600 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider">
+                𝕏 Signal
+              </span>
             )}
-            <span className="text-[10px] font-semibold text-muted-foreground tracking-wide uppercase">{item.source} · {item.readTime}m</span>
+            {item.subtopic && (
+              <span className="rounded-full bg-secondary px-2 py-0.5 text-[10px] font-medium text-secondary-foreground">{item.subtopic}</span>
+            )}
+            {item.badges?.slice(0, 2).map(badge => (
+              <span key={badge} className={`rounded-full border px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider ${badgeStyles[badge]}`}>{badge}</span>
+            ))}
+          </div>
+
+          {/* Headline */}
+          <h3 className={`font-display ${compact ? 'text-[14px]' : 'text-[16px]'} leading-snug font-medium text-foreground`}>
+            {displayTitle}
+          </h3>
+
+          {secondaryTitle && !compact && (
+            <p className="text-[11px] text-muted-foreground/60 leading-snug truncate">{secondaryTitle}</p>
+          )}
+
+          {!compact && (
+            <p className="text-[12px] leading-relaxed text-muted-foreground line-clamp-2">{summaryText}</p>
+          )}
+
+          {/* Footer */}
+          <div className="flex items-center gap-2 pt-0.5">
+            <span className="text-[10px] font-semibold text-muted-foreground tracking-wide uppercase">{item.source}</span>
+            <span className="text-[10px] text-muted-foreground">·</span>
+            <span className="flex items-center gap-0.5 text-[10px] text-muted-foreground">
+              <Clock className="h-2.5 w-2.5" />
+              {timeAgo}
+            </span>
             {item.marketDirection && directionIcon[item.marketDirection]}
             {item.impactLevel === 'high' && (
-              <span className="text-[9px] font-bold text-amber-600 uppercase">⚡ High Impact</span>
+              <span className="text-[9px] font-bold text-amber-600 uppercase">⚡</span>
             )}
-          </div>
-          <div className="flex items-center gap-0.5">
-            <button
-              onClick={(e) => { e.stopPropagation(); onToggleSave(item.id); }}
-              className="rounded-full p-1.5 transition-colors hover:bg-secondary"
-              aria-label={saved ? 'Unsave' : 'Save'}
-            >
-              {saved ? <BookmarkCheck className="h-3.5 w-3.5 text-primary" /> : <Bookmark className="h-3.5 w-3.5 text-muted-foreground" />}
-            </button>
-            {onMuteSource && (
+            <div className="ml-auto flex items-center gap-0.5">
               <button
-                onClick={(e) => { e.stopPropagation(); onMuteSource(item.source); }}
-                className="rounded-full p-1.5 transition-colors hover:bg-secondary"
-                aria-label={`Mute ${item.source}`}
+                onClick={(e) => { e.stopPropagation(); onToggleSave(item.id); }}
+                className="rounded-full p-1 transition-colors hover:bg-secondary"
+                aria-label={saved ? 'Unsave' : 'Save'}
               >
-                <VolumeX className="h-3.5 w-3.5 text-muted-foreground" />
+                {saved ? <BookmarkCheck className="h-3.5 w-3.5 text-primary" /> : <Bookmark className="h-3.5 w-3.5 text-muted-foreground" />}
               </button>
-            )}
+              {onMuteSource && (
+                <button
+                  onClick={(e) => { e.stopPropagation(); onMuteSource(item.source); }}
+                  className="rounded-full p-1 transition-colors hover:bg-secondary"
+                  aria-label={`Mute ${item.source}`}
+                >
+                  <VolumeX className="h-3.5 w-3.5 text-muted-foreground" />
+                </button>
+              )}
+              <ExternalLink className="h-3 w-3 text-muted-foreground/40 ml-0.5" />
+            </div>
           </div>
         </div>
+
+        {/* Side thumbnail */}
+        {hasImage && (
+          <div className={`shrink-0 ${compact ? 'w-14 h-14' : 'w-20 h-20'} rounded-lg overflow-hidden bg-muted`}>
+            <img src={item.imageUrl} alt="" className="w-full h-full object-cover" onError={() => setImgError(true)} loading="lazy" />
+          </div>
+        )}
       </div>
     </motion.article>
   );

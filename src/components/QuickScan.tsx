@@ -3,7 +3,7 @@ import { NewsItem, Narrative } from '@/lib/types';
 import { Language } from '@/hooks/useLanguage';
 import { supabase } from '@/integrations/supabase/client';
 import { motion } from 'framer-motion';
-import { Zap } from 'lucide-react';
+import { Zap, Clock } from 'lucide-react';
 
 interface Props {
   articles: NewsItem[];
@@ -12,7 +12,7 @@ interface Props {
 }
 
 const CACHE_KEY = 'quick-scan-cache';
-const CACHE_DURATION = 15 * 60 * 1000; // 15 min
+const CACHE_DURATION = 15 * 60 * 1000;
 
 export default function QuickScan({ articles, narratives, lang }: Props) {
   const [bullets, setBullets] = useState<string[]>([]);
@@ -48,17 +48,23 @@ export default function QuickScan({ articles, narratives, lang }: Props) {
   if (bullets.length === 0 && !loading) return null;
 
   const title = lang === 'th' ? 'สรุปเร็ววันนี้' : 'Quick Scan';
+  const subtitle = lang === 'th' ? 'สิ่งที่เปลี่ยนแปลงวันนี้ — อ่านจบใน 30 วินาที' : 'What changed today — read in 30 seconds';
 
   return (
     <motion.section
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
-      className="glass-card rounded-lg p-4 space-y-3"
+      className="rounded-lg border border-primary/15 bg-primary/[0.03] p-4 space-y-2.5"
     >
       <div className="flex items-center gap-2">
         <Zap className="h-4 w-4 text-primary" />
         <h2 className="font-display text-lg">{title}</h2>
+        <span className="text-[10px] text-muted-foreground flex items-center gap-1 ml-auto">
+          <Clock className="h-2.5 w-2.5" />
+          {lang === 'th' ? '30 วิ' : '30s read'}
+        </span>
       </div>
+      <p className="text-[11px] text-muted-foreground -mt-1">{subtitle}</p>
 
       {loading ? (
         <div className="space-y-2">
@@ -67,7 +73,7 @@ export default function QuickScan({ articles, narratives, lang }: Props) {
           ))}
         </div>
       ) : (
-        <ul className="space-y-2">
+        <ul className="space-y-1.5">
           {bullets.map((b, i) => (
             <li key={i} className="flex gap-2 text-[13px] leading-relaxed text-foreground/85">
               <span className="shrink-0 text-primary font-bold mt-0.5">▸</span>
@@ -95,7 +101,6 @@ async function generateBrief(articles: NewsItem[], narratives: Narrative[], lang
     if (error || !data?.bullets?.length) throw new Error('No brief');
     return data.bullets;
   } catch {
-    // Fallback: use top article titles
     return articles.slice(0, 5).map(a => a.title);
   }
 }
