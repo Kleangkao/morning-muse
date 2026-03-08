@@ -1,0 +1,88 @@
+// Bilingual category and UI label translations
+
+export const categoryLabels = {
+  en: {
+    ai: 'AI',
+    crypto: 'Crypto',
+    investment: 'Investment',
+    macro: 'Macro',
+    'tech-stocks': 'Tech',
+    commodities: 'Commodities',
+  },
+  th: {
+    ai: 'AI',
+    crypto: 'คริปโต',
+    investment: 'การลงทุน',
+    macro: 'เศรษฐกิจมหภาค',
+    'tech-stocks': 'หุ้นเทค',
+    commodities: 'สินค้าโภคภัณฑ์',
+  },
+} as const;
+
+export const subtopicLabels = {
+  en: {
+    'L1': 'L1',
+    'L2': 'L2',
+    'Altcoins': 'Altcoins',
+    'DeFi': 'DeFi',
+    'NFT': 'NFT',
+    'Stablecoins': 'Stablecoins',
+    'Market Movements': 'Market Movements',
+    'Macro Economy': 'Macro Economy',
+    'RWA': 'RWA',
+    'On-chain': 'On-chain',
+    'Earnings': 'Earnings',
+    'IPO': 'IPO',
+    'M&A': 'M&A',
+  },
+  th: {
+    'L1': 'L1',
+    'L2': 'L2',
+    'Altcoins': 'อัลท์คอยน์',
+    'DeFi': 'DeFi',
+    'NFT': 'NFT',
+    'Stablecoins': 'เหรียญ Stablecoin',
+    'Market Movements': 'ความเคลื่อนไหวตลาด',
+    'Macro Economy': 'เศรษฐกิจมหภาค',
+    'RWA': 'สินทรัพย์จริง',
+    'On-chain': 'On-chain',
+    'Earnings': 'รายได้',
+    'IPO': 'IPO',
+    'M&A': 'ควบรวมกิจการ',
+  },
+} as const;
+
+export const badgeLabels = {
+  en: {
+    'Breaking': 'Breaking',
+    'Rising': 'Rising',
+    'High Impact': 'High Impact',
+    'Narrative': 'Narrative',
+    'Macro': 'Macro',
+    'Earnings': 'Earnings',
+    'On-chain': 'On-chain',
+  },
+  th: {
+    'Breaking': 'ข่าวด่วน',
+    'Rising': 'กำลังขึ้น',
+    'High Impact': 'ผลกระทบสูง',
+    'Narrative': 'เทรนด์',
+    'Macro': 'มหภาค',
+    'Earnings': 'รายได้',
+    'On-chain': 'ออนเชน',
+  },
+} as const;
+
+export type Language = 'en' | 'th';
+
+export function getCategoryLabel(category: string, lang: Language): string {
+  return categoryLabels[lang][category as keyof typeof categoryLabels.en] || category;
+}
+
+export function getSubtopicLabel(subtopic: string, lang: Language): string {
+  return subtopicLabels[lang][subtopic as keyof typeof subtopicLabels.en] || subtopic;
+}
+
+export function getBadgeLabel(badge: string, lang: Language): string {
+  return badgeLabels[lang][badge as keyof typeof badgeLabels.en] || badge;
+}

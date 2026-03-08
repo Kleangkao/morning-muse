@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { NewsItem, SmartBadge } from '@/lib/types';
+import { Language } from '@/hooks/useLanguage';
+import { getCategoryLabel, getSubtopicLabel, getBadgeLabel } from '@/lib/translations';
 import { Bookmark, BookmarkCheck, Clock, VolumeX, TrendingUp, TrendingDown, Minus, ExternalLink } from 'lucide-react';
 import { motion } from 'framer-motion';
 
@@ -15,7 +17,7 @@ interface Props {
   compact?: boolean;
   thaiTitle?: string;
   thaiSummary?: string;
-  showThai?: boolean;
+  lang: Language;
 }
 
 const categoryColors: Record<string, string> = {
@@ -43,10 +45,12 @@ const directionIcon = {
   neutral: <Minus className="h-3 w-3 text-muted-foreground" />,
 };
 
-export default function NewsCard({ item, saved, isRead, onToggleSave, onMarkRead, onMuteSource, onOpenDetail, index = 0, compact, thaiTitle, thaiSummary, showThai }: Props) {
-  const timeAgo = getTimeAgo(item.publishedAt);
+export default function NewsCard({ item, saved, isRead, onToggleSave, onMarkRead, onMuteSource, onOpenDetail, index = 0, compact, thaiTitle, thaiSummary, lang }: Props) {
+  const timeAgo = getTimeAgo(item.publishedAt, lang);
   const ref = useRef<HTMLElement>(null);
   const [imgError, setImgError] = useState(false);
+
+  const showThai = lang === 'th';
 
   useEffect(() => {
     if (isRead) return;
@@ -74,18 +78,22 @@ export default function NewsCard({ item, saved, isRead, onToggleSave, onMarkRead
     }
   };
 
-  // Strict language: EN = English only, TH = Thai only
-  // When Thai mode is on but translation is missing, show loading shimmer effect
-  const isMissingThaiTitle = showThai && !thaiTitle;
-  const isMissingThaiSummary = showThai && !thaiSummary;
-  const displayTitle = showThai ? (thaiTitle || '…') : item.title;
-  const secondaryTitle = undefined; // Never show mixed-language secondary title
-  // For summary: show Thai if available, otherwise show shimmer placeholder
-  const summaryText = showThai ? (thaiSummary || '…') : item.summary;
+  // Strict language mode: show only one language, never mix
+  // If Thai mode and translation available, show Thai; otherwise show loading indicator
+  const isTranslationReady = showThai ? !!thaiTitle : true;
+  const displayTitle = showThai ? (thaiTitle || '⋯') : item.title;
+  const summaryText = showThai ? (thaiSummary || '⋯') : item.summary;
   const hasImage = item.imageUrl && !imgError;
+
+  // Translate category and subtopic labels
+  const categoryLabel = getCategoryLabel(item.category, lang);
+  const subtopicLabel = item.subtopic ? getSubtopicLabel(item.subtopic, lang) : null;
 
   // Determine if this is an X/Twitter source
   const isXSource = item.source.toLowerCase() === 'x' || item.source.toLowerCase() === 'twitter';
+
+  // Loading state for Thai mode without translations
+  const isLoading = showThai && !thaiTitle;
 
   return (
     <motion.article
@@ -102,32 +110,32 @@ export default function NewsCard({ item, saved, isRead, onToggleSave, onMarkRead
           {/* Badges row */}
           <div className="flex items-center gap-1.5 flex-wrap">
             <span className={`inline-block rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${categoryColors[item.category] || 'bg-secondary text-secondary-foreground'}`}>
-              {item.category === 'tech-stocks' ? 'Tech' : item.category}
+              {categoryLabel}
             </span>
             {isXSource && (
               <span className="inline-flex items-center gap-0.5 rounded-full bg-blue-500/10 text-blue-600 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider">
-                𝕏 Signal
+                𝕏 {showThai ? 'สัญญาณ' : 'Signal'}
               </span>
             )}
-            {item.subtopic && (
-              <span className="rounded-full bg-secondary px-2 py-0.5 text-[10px] font-medium text-secondary-foreground">{item.subtopic}</span>
+            {subtopicLabel && (
+              <span className="rounded-full bg-secondary px-2 py-0.5 text-[10px] font-medium text-secondary-foreground">{subtopicLabel}</span>
             )}
             {item.badges?.slice(0, 2).map(badge => (
-              <span key={badge} className={`rounded-full border px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider ${badgeStyles[badge]}`}>{badge}</span>
+              <span key={badge} className={`rounded-full border px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider ${badgeStyles[badge]}`}>
+                {getBadgeLabel(badge, lang)}
+              </span>
             ))}
           </div>
 
           {/* Headline */}
-          <h3 className={`font-display ${compact ? 'text-[14px]' : 'text-[16px]'} leading-snug font-medium text-foreground`}>
+          <h3 className={`font-display ${compact ? 'text-[14px]' : 'text-[16px]'} leading-snug font-medium text-foreground ${isLoading ? 'animate-pulse bg-muted/50 rounded' : ''}`}>
             {displayTitle}
           </h3>
 
-          {secondaryTitle && !compact && (
-            <p className="text-[11px] text-muted-foreground/60 leading-snug truncate">{secondaryTitle}</p>
-          )}
-
           {!compact && (
-            <p className="text-[12px] leading-relaxed text-muted-foreground line-clamp-2">{summaryText}</p>
+            <p className={`text-[12px] leading-relaxed text-muted-foreground line-clamp-2 ${isLoading ? 'animate-pulse bg-muted/30 rounded' : ''}`}>
+              {summaryText}
+            </p>
           )}
 
           {/* Footer */}
@@ -175,11 +183,12 @@ export default function NewsCard({ item, saved, isRead, onToggleSave, onMarkRead
   );
 }
 
-function getTimeAgo(dateStr: string): string {
+function getTimeAgo(dateStr: string, lang: Language): string {
   const diff = Date.now() - new Date(dateStr).getTime();
   const mins = Math.floor(diff / 60000);
-  if (mins < 60) return `${mins}m`;
+  if (mins < 60) return lang === 'th' ? `${mins} นาที` : `${mins}m`;
   const hrs = Math.floor(mins / 60);
-  if (hrs < 24) return `${hrs}h`;
-  return `${Math.floor(hrs / 24)}d`;
+  if (hrs < 24) return lang === 'th' ? `${hrs} ชม.` : `${hrs}h`;
+  const days = Math.floor(hrs / 24);
+  return lang === 'th' ? `${days} วัน` : `${days}d`;
 }

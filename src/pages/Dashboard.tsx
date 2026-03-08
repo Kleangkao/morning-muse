@@ -172,7 +172,7 @@ export default function Dashboard({ prefs, setPrefs, saved, read, onToggleSave, 
                   <h2 className="font-display text-lg mb-2 text-muted-foreground">{tr.lowerSignal}</h2>
                   <div className="space-y-2">
                     {lowSignal.map((item, i) => (
-                      <NewsCard key={item.id} item={item} saved={saved.includes(item.id)} isRead={read.includes(item.id)} onToggleSave={onToggleSave} onMarkRead={onMarkRead} onMuteSource={onMuteSource} onOpenDetail={handleOpenDetail} index={i} compact showThai={showThai} thaiTitle={thaiTitles[item.id]} thaiSummary={thaiSummaries[item.id]} />
+                      <NewsCard key={item.id} item={item} saved={saved.includes(item.id)} isRead={read.includes(item.id)} onToggleSave={onToggleSave} onMarkRead={onMarkRead} onMuteSource={onMuteSource} onOpenDetail={handleOpenDetail} index={i} compact lang={lang} thaiTitle={thaiTitles[item.id]} thaiSummary={thaiSummaries[item.id]} />
                     ))}
                   </div>
                 </section>
@@ -183,7 +183,7 @@ export default function Dashboard({ prefs, setPrefs, saved, read, onToggleSave, 
               
               <div className="space-y-2">
                 {signalArticles.map((item, i) => (
-                  <NewsCard key={item.id} item={item} saved={saved.includes(item.id)} isRead={read.includes(item.id)} onToggleSave={onToggleSave} onMarkRead={onMarkRead} onMuteSource={onMuteSource} onOpenDetail={handleOpenDetail} index={i} showThai={showThai} thaiTitle={thaiTitles[item.id]} thaiSummary={thaiSummaries[item.id]} />
+                  <NewsCard key={item.id} item={item} saved={saved.includes(item.id)} isRead={read.includes(item.id)} onToggleSave={onToggleSave} onMarkRead={onMarkRead} onMuteSource={onMuteSource} onOpenDetail={handleOpenDetail} index={i} lang={lang} thaiTitle={thaiTitles[item.id]} thaiSummary={thaiSummaries[item.id]} />
                 ))}
               </div>
             </>
@@ -212,18 +212,18 @@ export default function Dashboard({ prefs, setPrefs, saved, read, onToggleSave, 
   );
 }
 
-function FeedSection({ title, items, saved, read, onToggleSave, onMarkRead, onMuteSource, thaiTitles, thaiSummaries, showThai, onOpenDetail }: {
+function FeedSection({ title, items, saved, read, onToggleSave, onMarkRead, onMuteSource, thaiTitles, thaiSummaries, lang, onOpenDetail }: {
   title: string; items: NewsItem[]; saved: string[]; read: string[];
   onToggleSave: (id: string) => void; onMarkRead: (id: string) => void; onMuteSource: (source: string) => void;
   onOpenDetail: (item: NewsItem) => void;
-  thaiTitles?: Record<string, string>; thaiSummaries?: Record<string, string>; showThai?: boolean;
+  thaiTitles?: Record<string, string>; thaiSummaries?: Record<string, string>; lang?: Language;
 }) {
   return (
     <section>
       <h2 className="font-display text-xl mb-2">{title}</h2>
       <div className="space-y-2">
         {items.map((item, i) => (
-          <NewsCard key={item.id} item={item} saved={saved.includes(item.id)} isRead={read.includes(item.id)} onToggleSave={onToggleSave} onMarkRead={onMarkRead} onMuteSource={onMuteSource} onOpenDetail={onOpenDetail} index={i} showThai={showThai} thaiTitle={thaiTitles?.[item.id]} thaiSummary={thaiSummaries?.[item.id]} />
+          <NewsCard key={item.id} item={item} saved={saved.includes(item.id)} isRead={read.includes(item.id)} onToggleSave={onToggleSave} onMarkRead={onMarkRead} onMuteSource={onMuteSource} onOpenDetail={onOpenDetail} index={i} lang={lang || 'en'} thaiTitle={thaiTitles?.[item.id]} thaiSummary={thaiSummaries?.[item.id]} />
         ))}
       </div>
     </section>
