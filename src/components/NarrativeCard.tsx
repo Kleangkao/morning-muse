@@ -2,6 +2,7 @@ import { Narrative, TopicCategory } from '@/lib/types';
 import { motion } from 'framer-motion';
 import { TrendingUp, Flame, Eye } from 'lucide-react';
 import { Language, t } from '@/hooks/useLanguage';
+import { getCategoryLabel } from '@/lib/translations';
 
 interface Props {
   narratives: Narrative[];
@@ -10,9 +11,9 @@ interface Props {
 }
 
 const momentumConfig = {
-  'Hot': { icon: Flame, color: 'text-red-600 bg-red-500/10', label: 'Hot', thLabel: 'ร้อน' },
-  'Rising': { icon: TrendingUp, color: 'text-emerald-600 bg-emerald-500/10', label: 'Rising', thLabel: 'กำลังขึ้น' },
-  'Watchlist': { icon: Eye, color: 'text-amber-600 bg-amber-500/10', label: 'Watch', thLabel: 'จับตา' },
+  'Hot': { icon: Flame, color: 'text-red-600 bg-red-500/10', labelEn: 'Hot', labelTh: 'ร้อน' },
+  'Rising': { icon: TrendingUp, color: 'text-emerald-600 bg-emerald-500/10', labelEn: 'Rising', labelTh: 'กำลังขึ้น' },
+  'Watchlist': { icon: Eye, color: 'text-amber-600 bg-amber-500/10', labelEn: 'Watch', labelTh: 'จับตา' },
 };
 
 const categoryColors: Record<string, string> = {
@@ -48,9 +49,13 @@ export default function NarrativeCard({ narratives, lang, categoryFilter = 'all'
         {filtered.map((n, i) => {
           const m = momentumConfig[n.momentum];
           const Icon = m.icon;
-          const explanation = showThai
-            ? (n.whyItMattersTh || n.whyItMatters)
-            : n.whyItMatters;
+          
+          // Use bilingual narrative title and explanation
+          const narrativeTitle = showThai ? (n.titleTh || n.title) : n.title;
+          const explanation = showThai ? (n.whyItMattersTh || n.whyItMatters) : n.whyItMatters;
+          const categoryLabel = getCategoryLabel(n.category, lang);
+          const momentumLabel = showThai ? m.labelTh : m.labelEn;
+          
           return (
             <motion.div
               key={n.id}
@@ -62,10 +67,10 @@ export default function NarrativeCard({ narratives, lang, categoryFilter = 'all'
               <div className="flex items-start justify-between gap-2">
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1">
-                    <h3 className="font-display text-[15px] font-medium text-foreground truncate">{n.title}</h3>
+                    <h3 className="font-display text-[15px] font-medium text-foreground truncate">{narrativeTitle}</h3>
                     <span className={`shrink-0 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase ${m.color}`}>
                       <Icon className="h-3 w-3" />
-                      {showThai ? m.thLabel : m.label}
+                      {momentumLabel}
                     </span>
                   </div>
                   <p className="text-[12px] leading-relaxed text-muted-foreground">{explanation}</p>
@@ -74,7 +79,7 @@ export default function NarrativeCard({ narratives, lang, categoryFilter = 'all'
                       {n.articleCount} {tr.articles}
                     </span>
                     <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
-                      {n.category}
+                      {categoryLabel}
                     </span>
                   </div>
                 </div>
