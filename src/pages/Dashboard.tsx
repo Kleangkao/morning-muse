@@ -69,7 +69,8 @@ export default function Dashboard({ prefs, setPrefs, saved, read, onToggleSave, 
 
   const unreadCount = articles.filter(a => !read.includes(a.id)).length;
   const highImpactCount = articles.filter(a => a.impactLevel === 'high').length;
-  const hottestNarrative = liveNarratives.find(n => n.momentum === 'Hot')?.title ?? liveNarratives[0]?.title ?? '';
+  const categoryNarratives = activeFilter === 'all' ? liveNarratives : liveNarratives.filter(n => n.category === activeFilter);
+  const hottestNarrative = categoryNarratives.find(n => n.momentum === 'Hot')?.title ?? categoryNarratives[0]?.title ?? '';
   const categoryCounts = articles.reduce<Record<string, number>>((acc, a) => { acc[a.category] = (acc[a.category] || 0) + 1; return acc; }, {});
   const strongestCategory = Object.entries(categoryCounts).sort((a, b) => b[1] - a[1])[0]?.[0] ?? '';
 
@@ -142,8 +143,8 @@ export default function Dashboard({ prefs, setPrefs, saved, read, onToggleSave, 
 
           {activeFilter === 'all' ? (
             <>
-              {/* Narratives — second */}
-              <NarrativeCard narratives={liveNarratives} lang={lang} />
+          {/* Narratives — second */}
+              <NarrativeCard narratives={liveNarratives} lang={lang} categoryFilter="all" />
 
               {/* Live Alpha Feed — third */}
               {topSignals.length > 0 && (
@@ -172,11 +173,14 @@ export default function Dashboard({ prefs, setPrefs, saved, read, onToggleSave, 
               )}
             </>
           ) : (
-            <div className="space-y-2">
-              {signalArticles.map((item, i) => (
-                <NewsCard key={item.id} item={item} saved={saved.includes(item.id)} isRead={read.includes(item.id)} onToggleSave={onToggleSave} onMarkRead={onMarkRead} onMuteSource={onMuteSource} onOpenDetail={handleOpenDetail} index={i} showThai={showThai} thaiTitle={thaiTitles[item.id]} thaiSummary={thaiSummaries[item.id]} />
-              ))}
-            </div>
+            <>
+              <NarrativeCard narratives={liveNarratives} lang={lang} categoryFilter={activeFilter} />
+              <div className="space-y-2">
+                {signalArticles.map((item, i) => (
+                  <NewsCard key={item.id} item={item} saved={saved.includes(item.id)} isRead={read.includes(item.id)} onToggleSave={onToggleSave} onMarkRead={onMarkRead} onMuteSource={onMuteSource} onOpenDetail={handleOpenDetail} index={i} showThai={showThai} thaiTitle={thaiTitles[item.id]} thaiSummary={thaiSummaries[item.id]} />
+                ))}
+              </div>
+            </>
           )}
 
           {articles.length === 0 && !isLoading && (

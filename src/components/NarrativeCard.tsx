@@ -1,4 +1,4 @@
-import { Narrative } from '@/lib/types';
+import { Narrative, TopicCategory } from '@/lib/types';
 import { motion } from 'framer-motion';
 import { TrendingUp, Flame, Eye } from 'lucide-react';
 import { Language, t } from '@/hooks/useLanguage';
@@ -6,6 +6,7 @@ import { Language, t } from '@/hooks/useLanguage';
 interface Props {
   narratives: Narrative[];
   lang: Language;
+  categoryFilter?: TopicCategory | 'all';
 }
 
 const momentumConfig = {
@@ -23,8 +24,13 @@ const categoryColors: Record<string, string> = {
   commodities: 'border-l-orange-500',
 };
 
-export default function NarrativeCard({ narratives, lang }: Props) {
-  if (!narratives.length) return null;
+export default function NarrativeCard({ narratives, lang, categoryFilter = 'all' }: Props) {
+  const filtered = categoryFilter === 'all'
+    ? narratives
+    : narratives.filter(n => n.category === categoryFilter);
+
+  if (!filtered.length) return null;
+
   const tr = t(lang);
   const showThai = lang === 'th';
 
@@ -39,9 +45,12 @@ export default function NarrativeCard({ narratives, lang }: Props) {
         <p className="text-[11px] text-muted-foreground">{subtitle}</p>
       </div>
       <div className="space-y-2">
-        {narratives.map((n, i) => {
+        {filtered.map((n, i) => {
           const m = momentumConfig[n.momentum];
           const Icon = m.icon;
+          const explanation = showThai
+            ? (n.whyItMattersTh || n.whyItMatters)
+            : n.whyItMatters;
           return (
             <motion.div
               key={n.id}
@@ -59,7 +68,7 @@ export default function NarrativeCard({ narratives, lang }: Props) {
                       {showThai ? m.thLabel : m.label}
                     </span>
                   </div>
-                  <p className="text-[12px] leading-relaxed text-muted-foreground">{n.whyItMatters}</p>
+                  <p className="text-[12px] leading-relaxed text-muted-foreground">{explanation}</p>
                   <div className="flex items-center gap-3 mt-1.5">
                     <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
                       {n.articleCount} {tr.articles}

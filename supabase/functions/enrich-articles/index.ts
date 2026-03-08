@@ -23,17 +23,8 @@ Deno.serve(async (req) => {
       return new Response(JSON.stringify({ error: 'No API key' }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
 
-    // ─── Mode: Article Detail ───
-    if (body.mode === 'detail') {
-      return handleDetail(body, LOVABLE_API_KEY);
-    }
-
-    // ─── Mode: Quick Scan ───
-    if (body.mode === 'quickscan') {
-      return handleQuickScan(body, LOVABLE_API_KEY);
-    }
-
-    // ─── Default: Enrichment (Thai titles, summaries, narratives) ───
+    if (body.mode === 'detail') return handleDetail(body, LOVABLE_API_KEY);
+    if (body.mode === 'quickscan') return handleQuickScan(body, LOVABLE_API_KEY);
     return handleEnrichment(body, LOVABLE_API_KEY);
   } catch (error) {
     console.error('Enrichment error:', error);
@@ -55,8 +46,8 @@ async function handleDetail(body: any, apiKey: string) {
     body: JSON.stringify({
       model: 'google/gemini-2.5-flash',
       messages: [
-        { role: 'system', content: `You are a financial intelligence analyst. Write in ${langLabel}. Be concise, high-signal, market-relevant.` },
-        { role: 'user', content: `Article: "${article.title}" from ${article.source} (${article.category}/${article.subtopic})\nSummary: ${article.summary}\n\nWrite:\n1. A 3-paragraph detailed summary (each ~2-3 sentences, covering what happened, why it matters, market implications)\n2. 3-5 key takeaways as bullet points\n\nReturn JSON: { "paragraphs": [...], "takeaways": [...] }` },
+        { role: 'system', content: `You are a senior financial intelligence analyst writing a concise briefing. Write entirely in ${langLabel}. Do NOT include RSS feed text or raw excerpts. Synthesize the information into an original, high-signal analysis.` },
+        { role: 'user', content: `Article: "${article.title}" from ${article.source} (${article.category}/${article.subtopic})\nContext: ${article.summary}\n\nWrite an original analysis (do NOT copy the summary above). Structure:\n1. Three short paragraphs (2-3 sentences each):\n   - Paragraph 1: What happened (the core event or development)\n   - Paragraph 2: Why it matters (market/industry implications)\n   - Paragraph 3: What could happen next (outlook, risks, opportunities)\n2. 3-4 key takeaway bullet points (concise, actionable)\n\nReturn JSON: { "paragraphs": ["...", "...", "..."], "takeaways": ["...", "...", "..."] }` },
       ],
       response_format: { type: 'json_object' },
     }),
@@ -91,8 +82,8 @@ async function handleQuickScan(body: any, apiKey: string) {
     body: JSON.stringify({
       model: 'google/gemini-2.5-flash',
       messages: [
-        { role: 'system', content: `You are a financial intelligence briefing assistant. Write in ${langLabel}. Be ultra-concise, high-signal, easy to skim in 30 seconds.` },
-        { role: 'user', content: `Today's top stories:\n${briefData.top}\n\nActive narratives: ${briefData.narrs}\n\nCreate a daily intelligence brief with 5-8 bullet points covering:\n- What happened today across AI, crypto, macro, tech, commodities, investment\n- Notable market shifts or narratives\n- Each bullet: 1-2 sentences max, actionable insight\n\nReturn JSON: { "bullets": ["...", "..."] }` },
+        { role: 'system', content: `You are a financial intelligence briefing assistant. Write entirely in ${langLabel}. Be ultra-concise, high-signal, easy to skim in 30 seconds. Focus on immediate updates, not thematic patterns.` },
+        { role: 'user', content: `Today's top stories:\n${briefData.top}\n\nCreate a quick scan brief with 5-8 bullet points covering:\n- Key events that happened today across AI, crypto, macro, tech, commodities\n- Notable price moves or data releases\n- Each bullet: 1 sentence max, direct and factual\n\nReturn JSON: { "bullets": ["...", "..."] }` },
       ],
       response_format: { type: 'json_object' },
     }),
@@ -133,8 +124,10 @@ Your tasks:
 2. For each article, write a 1-2 sentence Thai summary focused on market relevance.
 3. Identify 2-5 emerging narratives by grouping related articles. For each narrative provide:
    - A compelling title (in English)
-   - A "whyItMatters" explanation (in Thai, 1-2 sentences)
+   - "whyItMatters": explanation in English (1-2 sentences, why this pattern matters for markets/investors)
+   - "whyItMattersTh": the same explanation in Thai
    - momentum: "Hot" if 3+ articles and very current, "Rising" if 2+ articles, "Watchlist" if emerging
+   - category: the primary category this narrative belongs to (ai, crypto, investment, macro, tech-stocks, commodities)
 
 You MUST use the provided tool to return structured output.`;
 
@@ -151,7 +144,7 @@ You MUST use the provided tool to return structured output.`;
         type: 'function',
         function: {
           name: 'return_enrichment',
-          description: 'Return Thai titles, Thai summaries, and detected narratives',
+          description: 'Return Thai titles, Thai summaries, and detected narratives with both English and Thai explanations',
           parameters: {
             type: 'object',
             properties: {
@@ -163,12 +156,13 @@ You MUST use the provided tool to return structured output.`;
                   type: 'object',
                   properties: {
                     title: { type: 'string' },
-                    whyItMatters: { type: 'string' },
+                    whyItMatters: { type: 'string', description: 'English explanation' },
+                    whyItMattersTh: { type: 'string', description: 'Thai explanation' },
                     momentum: { type: 'string', enum: ['Rising', 'Hot', 'Watchlist'] },
                     articleIds: { type: 'array', items: { type: 'string' } },
                     category: { type: 'string' },
                   },
-                  required: ['title', 'whyItMatters', 'momentum', 'articleIds', 'category'],
+                  required: ['title', 'whyItMatters', 'whyItMattersTh', 'momentum', 'articleIds', 'category'],
                 },
               },
             },
