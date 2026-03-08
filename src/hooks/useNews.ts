@@ -3,14 +3,10 @@ import { NewsItem, Narrative, UserPreferences } from '@/lib/types';
 import { demoNews, demoNarratives } from '@/lib/demo-data';
 import { supabase } from '@/integrations/supabase/client';
 
-const CACHE_KEY = 'morning-feed-cache';
 const ENRICHMENT_CACHE_KEY = 'morning-feed-enrichment';
-const CACHE_DURATION = 30 * 60 * 1000; // 30 min
-
-interface CachedData {
-  articles: NewsItem[];
-  fetchedAt: string;
-}
+const ENRICHMENT_CACHE_DURATION = 30 * 60 * 1000; // 30 min
+const UI_POLL_INTERVAL = 60 * 1000; // 1 minute
+const RSS_FETCH_INTERVAL = 5 * 60 * 1000; // 5 minutes
 
 interface EnrichmentCache {
   thaiSummaries: Record<string, string>;
@@ -18,55 +14,42 @@ interface EnrichmentCache {
   fetchedAt: string;
 }
 
-function loadCache(): CachedData | null {
-  try {
-    const raw = localStorage.getItem(CACHE_KEY);
-    if (!raw) return null;
-    const data: CachedData = JSON.parse(raw);
-    if (Date.now() - new Date(data.fetchedAt).getTime() > CACHE_DURATION) return null;
-    return data;
-  } catch {
-    return null;
-  }
-}
-
-function saveCache(data: CachedData) {
-  try { localStorage.setItem(CACHE_KEY, JSON.stringify(data)); } catch { }
-}
-
 function loadEnrichmentCache(): EnrichmentCache | null {
   try {
     const raw = localStorage.getItem(ENRICHMENT_CACHE_KEY);
     if (!raw) return null;
     const data: EnrichmentCache = JSON.parse(raw);
-    if (Date.now() - new Date(data.fetchedAt).getTime() > CACHE_DURATION) return null;
+    if (Date.now() - new Date(data.fetchedAt).getTime() > ENRICHMENT_CACHE_DURATION) return null;
     return data;
-  } catch {
-    return null;
-  }
+  } catch { return null; }
 }
 
 function saveEnrichmentCache(data: EnrichmentCache) {
   try { localStorage.setItem(ENRICHMENT_CACHE_KEY, JSON.stringify(data)); } catch { }
 }
 
-const REFRESH_HOURS = [7, 12, 18, 22];
-
-function getNextRefreshTime(): Date {
-  const now = new Date();
-  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  for (const h of REFRESH_HOURS) {
-    const t = new Date(today.getTime() + h * 60 * 60 * 1000);
-    if (t > now) return t;
-  }
-  return new Date(today.getTime() + 24 * 60 * 60 * 1000 + 7 * 60 * 60 * 1000);
+// Map DB row to frontend NewsItem
+function mapDbRow(row: any): NewsItem {
+  return {
+    id: row.id,
+    title: row.title,
+    summary: row.summary,
+    source: row.source,
+    category: row.category,
+    subtopic: row.subtopic,
+    url: row.url,
+    publishedAt: row.published_at,
+    readTime: row.read_time,
+    isTopSignal: row.is_top_signal,
+    impactLevel: row.impact_level,
+    marketDirection: row.market_direction,
+    badges: row.badges,
+    signalScore: row.signal_score,
+  };
 }
 
 export function useNews(prefs: UserPreferences) {
-  const [articles, setArticles] = useState<NewsItem[]>(() => {
-    const cached = loadCache();
-    return cached ? cached.articles : demoNews;
-  });
+  const [articles, setArticles] = useState<NewsItem[]>(demoNews);
   const [narratives, setNarratives] = useState<Narrative[]>(() => {
     const cached = loadEnrichmentCache();
     return cached ? cached.narratives : demoNarratives;
@@ -76,13 +59,49 @@ export function useNews(prefs: UserPreferences) {
     return cached?.thaiSummaries ?? {};
   });
   const [isLoading, setIsLoading] = useState(false);
-  const [lastUpdated, setLastUpdated] = useState<string | null>(() => {
-    const cached = loadCache();
-    return cached?.fetchedAt ?? null;
-  });
-  const [isLive, setIsLive] = useState(() => !!loadCache());
-  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [lastUpdated, setLastUpdated] = useState<string | null>(null);
+  const [isLive, setIsLive] = useState(false);
 
+  const uiPollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const rssFetchRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const lastRssFetch = useRef<number>(0);
+
+  // Load articles from DB
+  const loadFromDb = useCallback(async () => {
+    try {
+      const { data, error } = await supabase
+        .from('articles')
+        .select('*')
+        .order('signal_score', { ascending: false })
+        .order('published_at', { ascending: false })
+        .limit(100);
+
+      if (error || !data?.length) return false;
+
+      const mapped = data.map(mapDbRow);
+      setArticles(mapped);
+      setLastUpdated(new Date().toISOString());
+      setIsLive(true);
+      return true;
+    } catch {
+      return false;
+    }
+  }, []);
+
+  // Trigger RSS fetch edge function
+  const triggerRssFetch = useCallback(async () => {
+    try {
+      const { error } = await supabase.functions.invoke('fetch-rss');
+      if (error) throw error;
+      lastRssFetch.current = Date.now();
+      // After fetching, reload from DB
+      await loadFromDb();
+    } catch (err) {
+      console.error('RSS fetch failed:', err);
+    }
+  }, [loadFromDb]);
+
+  // Enrich articles with AI
   const enrichArticles = useCallback(async (mapped: NewsItem[]) => {
     try {
       const summaries = mapped.slice(0, 20).map(a => ({
@@ -97,10 +116,7 @@ export function useNews(prefs: UserPreferences) {
         body: { articles: summaries },
       });
 
-      if (error || !data) {
-        console.error('Enrichment failed:', error);
-        return;
-      }
+      if (error || !data) return;
 
       if (data.thaiSummaries && Object.keys(data.thaiSummaries).length > 0) {
         setThaiSummaries(data.thaiSummaries);
@@ -128,75 +144,69 @@ export function useNews(prefs: UserPreferences) {
     }
   }, []);
 
-  const fetchNews = useCallback(async () => {
+  // Manual refresh: trigger RSS + reload
+  const refresh = useCallback(async () => {
     setIsLoading(true);
     try {
-      const { data, error } = await supabase.functions.invoke('fetch-rss');
-
-      if (error) throw error;
-      if (!data?.success || !data?.articles?.length) throw new Error('No articles');
-
-      const mapped: NewsItem[] = data.articles.map((a: any) => ({
-        id: a.id,
-        title: a.title,
-        summary: a.summary,
-        source: a.source,
-        category: a.category as NewsItem['category'],
-        subtopic: a.subtopic,
-        url: a.url,
-        publishedAt: a.publishedAt,
-        readTime: a.readTime,
-        isTopSignal: a.isTopSignal,
-        impactLevel: a.impactLevel,
-        marketDirection: a.marketDirection,
-        badges: a.badges,
-        signalScore: a.signalScore,
-      }));
-
-      setArticles(mapped);
-      setLastUpdated(data.fetchedAt);
-      setIsLive(true);
-      saveCache({ articles: mapped, fetchedAt: data.fetchedAt });
-
-      // Enrich with AI in the background (don't await)
-      enrichArticles(mapped);
-    } catch (err) {
-      console.error('Failed to fetch live news, using fallback:', err);
-      if (!loadCache()) {
-        setArticles(demoNews);
-        setNarratives(demoNarratives);
-        setIsLive(false);
-      }
+      await triggerRssFetch();
     } finally {
       setIsLoading(false);
     }
-  }, [enrichArticles]);
+  }, [triggerRssFetch]);
 
-  const scheduleRefresh = useCallback(() => {
-    if (timerRef.current) clearTimeout(timerRef.current);
-    const next = getNextRefreshTime();
-    const delay = next.getTime() - Date.now();
-    console.log(`Next news refresh at ${next.toLocaleTimeString()} (in ${Math.round(delay / 60000)}min)`);
-    timerRef.current = setTimeout(() => {
-      fetchNews().then(scheduleRefresh);
-    }, delay);
-  }, [fetchNews]);
-
+  // Initial load
   useEffect(() => {
-    const cached = loadCache();
-    if (!cached) {
-      fetchNews().then(scheduleRefresh);
-    } else {
-      // Check if enrichment is cached; if not, run it
-      if (!loadEnrichmentCache()) {
-        enrichArticles(cached.articles);
+    let mounted = true;
+
+    async function init() {
+      setIsLoading(true);
+      // Try loading from DB first
+      const hasData = await loadFromDb();
+
+      if (!hasData) {
+        // No data in DB yet — trigger RSS fetch
+        await triggerRssFetch();
+      } else {
+        // Data exists, check if RSS fetch is needed (>5 min old)
+        if (Date.now() - lastRssFetch.current > RSS_FETCH_INTERVAL) {
+          // Trigger in background
+          triggerRssFetch();
+        }
       }
-      scheduleRefresh();
+
+      // Run enrichment if no cache
+      if (!loadEnrichmentCache() && mounted) {
+        const { data } = await supabase
+          .from('articles')
+          .select('*')
+          .order('signal_score', { ascending: false })
+          .limit(20);
+        if (data?.length) {
+          enrichArticles(data.map(mapDbRow));
+        }
+      }
+
+      if (mounted) setIsLoading(false);
     }
+
+    init();
+
+    // UI poll: reload from DB every 1 minute
+    uiPollRef.current = setInterval(() => {
+      loadFromDb();
+    }, UI_POLL_INTERVAL);
+
+    // RSS fetch: every 5 minutes
+    rssFetchRef.current = setInterval(() => {
+      triggerRssFetch();
+    }, RSS_FETCH_INTERVAL);
+
     return () => {
-      if (timerRef.current) clearTimeout(timerRef.current);
+      mounted = false;
+      if (uiPollRef.current) clearInterval(uiPollRef.current);
+      if (rssFetchRef.current) clearInterval(rssFetchRef.current);
     };
-  }, [fetchNews, scheduleRefresh, enrichArticles]);
+  }, [loadFromDb, triggerRssFetch, enrichArticles]);
 
   // Filter by user prefs
   const filteredArticles = articles.filter(a => {
@@ -211,6 +221,6 @@ export function useNews(prefs: UserPreferences) {
     isLoading,
     lastUpdated,
     isLive,
-    refresh: fetchNews,
+    refresh,
   };
 }
