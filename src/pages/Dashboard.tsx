@@ -66,7 +66,7 @@ export default function Dashboard({ prefs, setPrefs, saved, read, onToggleSave, 
   // Dashboard stats
   const unreadCount = articles.filter(a => !read.includes(a.id)).length;
   const highImpactCount = articles.filter(a => a.impactLevel === 'high').length;
-  const hottestNarrative = demoNarratives.find(n => n.momentum === 'Hot')?.title ?? '';
+  const hottestNarrative = liveNarratives.find(n => n.momentum === 'Hot')?.title ?? liveNarratives[0]?.title ?? '';
   const categoryCounts = articles.reduce<Record<string, number>>((acc, a) => {
     acc[a.category] = (acc[a.category] || 0) + 1;
     return acc;
@@ -154,6 +154,14 @@ export default function Dashboard({ prefs, setPrefs, saved, read, onToggleSave, 
           {/* Dashboard Stats */}
           <DashboardHeader
             articles={articles}
+            narratives={liveNarratives}
+            newCount={unreadCount}
+            highImpactCount={highImpactCount}
+            hottestNarrative={hottestNarrative}
+            strongestCategory={categoryLabels[strongestCategory] || strongestCategory}
+            lastUpdated={lastUpdated}
+            isLive={isLive}
+          />
             narratives={demoNarratives}
             newCount={unreadCount}
             highImpactCount={highImpactCount}
@@ -171,7 +179,7 @@ export default function Dashboard({ prefs, setPrefs, saved, read, onToggleSave, 
               )}
 
               {/* Emerging Narratives */}
-              <NarrativeCard narratives={demoNarratives} />
+              <NarrativeCard narratives={liveNarratives} />
 
               {/* High Signal */}
               {highSignal.length > 0 && (
