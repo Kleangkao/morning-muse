@@ -1,6 +1,6 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { Language, t } from '@/hooks/useLanguage';
-import { Bot, Send, X, Sparkles, Loader2, Trash2 } from 'lucide-react';
+import { Send, X, Sparkles, Loader2, Trash2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import ReactMarkdown from 'react-markdown';
 
@@ -45,7 +45,6 @@ export default function AskAlice({ lang }: Props) {
   const inputRef = useRef<HTMLInputElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  // Auto-scroll to bottom when messages change
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
@@ -67,7 +66,6 @@ export default function AskAlice({ lang }: Props) {
     const controller = new AbortController();
     abortRef.current = controller;
 
-    // Build history from previous messages (not including the current ones)
     const history = messages.map(m => ({ role: m.role, content: m.content }));
 
     try {
@@ -99,7 +97,6 @@ export default function AskAlice({ lang }: Props) {
         return;
       }
 
-      // Stream SSE
       const reader = resp.body?.getReader();
       if (!reader) { setIsStreaming(false); return; }
 
@@ -164,12 +161,12 @@ export default function AskAlice({ lang }: Props) {
       {/* Floating button */}
       <motion.button
         onClick={() => { setOpen(true); setTimeout(() => inputRef.current?.focus(), 100); }}
-        className="fixed bottom-5 right-5 z-50 flex items-center gap-2 rounded-full bg-primary px-5 py-3 text-primary-foreground font-semibold shadow-lg hover:shadow-xl transition-shadow"
-        whileHover={{ scale: 1.05 }}
-        whileTap={{ scale: 0.95 }}
+        className="fixed bottom-5 right-5 z-50 flex items-center gap-2.5 rounded-full bg-foreground px-6 py-3.5 text-background font-medium shadow-lg hover:shadow-xl transition-all"
+        whileHover={{ scale: 1.04 }}
+        whileTap={{ scale: 0.97 }}
       >
-        <Sparkles className="h-5 w-5" />
-        {label}
+        <Sparkles className="h-4 w-4" />
+        <span className="text-sm tracking-wide">{label}</span>
       </motion.button>
 
       {/* Panel overlay */}
@@ -179,52 +176,58 @@ export default function AskAlice({ lang }: Props) {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40 backdrop-blur-sm p-4"
+            transition={{ duration: 0.2 }}
+            className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-foreground/20 backdrop-blur-sm p-3 sm:p-6"
             onClick={(e) => { if (e.target === e.currentTarget) handleClose(); }}
           >
             <motion.div
-              initial={{ y: 60, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              exit={{ y: 60, opacity: 0 }}
-              transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-              className="w-full max-w-xl max-h-[85vh] flex flex-col rounded-2xl border border-border bg-card shadow-2xl overflow-hidden"
+              initial={{ y: 40, opacity: 0, scale: 0.98 }}
+              animate={{ y: 0, opacity: 1, scale: 1 }}
+              exit={{ y: 40, opacity: 0, scale: 0.98 }}
+              transition={{ type: 'spring', damping: 30, stiffness: 350 }}
+              className="w-full max-w-lg max-h-[85vh] flex flex-col rounded-2xl border border-border/60 bg-card shadow-[0_25px_60px_-12px_hsl(var(--foreground)/0.15)] overflow-hidden"
             >
               {/* Header */}
-              <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-secondary/30">
-                <div className="flex items-center gap-2">
-                  <Bot className="h-5 w-5 text-primary" />
-                  <span className="font-display text-lg font-semibold text-foreground">Ask Alice</span>
-                  <span className="text-[10px] bg-primary/10 text-primary px-2 py-0.5 rounded-full font-semibold">
-                    {lang === 'th' ? 'ผู้ช่วยวิเคราะห์' : 'Intelligence'}
+              <div className="flex items-center justify-between px-6 py-5 border-b border-border/50">
+                <div className="flex flex-col gap-0.5">
+                  <span className="font-display text-xl font-semibold text-foreground tracking-tight">Ask Alice</span>
+                  <span className="text-xs text-muted-foreground font-medium tracking-wide">
+                    {lang === 'th' ? 'ผู้ช่วยวิเคราะห์ข่าว AI' : 'AI News Assistant'}
                   </span>
                 </div>
-                <div className="flex items-center gap-1">
+                <div className="flex items-center gap-0.5">
                   {messages.length > 0 && (
-                    <button onClick={handleClear} className="rounded-full p-1.5 hover:bg-secondary transition-colors" title={lang === 'th' ? 'ล้างสนทนา' : 'Clear chat'}>
-                      <Trash2 className="h-4 w-4 text-muted-foreground" />
+                    <button
+                      onClick={handleClear}
+                      className="rounded-full p-2 hover:bg-muted/60 transition-colors"
+                      title={lang === 'th' ? 'ล้างสนทนา' : 'Clear chat'}
+                    >
+                      <Trash2 className="h-3.5 w-3.5 text-muted-foreground/50" />
                     </button>
                   )}
-                  <button onClick={handleClose} className="rounded-full p-1.5 hover:bg-secondary transition-colors">
-                    <X className="h-4 w-4 text-muted-foreground" />
+                  <button onClick={handleClose} className="rounded-full p-2 hover:bg-muted/60 transition-colors">
+                    <X className="h-3.5 w-3.5 text-muted-foreground/50" />
                   </button>
                 </div>
               </div>
 
               {/* Messages */}
-              <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 py-4 space-y-3">
+              <div ref={scrollRef} className="flex-1 overflow-y-auto px-6 py-6 space-y-5">
                 {messages.length === 0 && !isStreaming && (
-                  <div className="space-y-3">
-                    <p className="text-sm text-muted-foreground">
-                      {lang === 'th'
-                        ? 'ถามเกี่ยวกับข่าว ราคาตลาด หรือเทรนด์การลงทุน'
-                        : 'Ask about news, market prices, or investment trends'}
-                    </p>
+                  <div className="space-y-5">
+                    <div className="space-y-1.5">
+                      <p className="text-sm text-muted-foreground leading-relaxed">
+                        {lang === 'th'
+                          ? 'สวัสดีตอนเช้า — ถามเกี่ยวกับข่าว ราคาตลาด หรือเทรนด์การลงทุน'
+                          : 'Good morning — ask about news, market prices, or investment trends'}
+                      </p>
+                    </div>
                     <div className="flex flex-wrap gap-2">
                       {EXAMPLE_QUESTIONS[lang].map((eq) => (
                         <button
                           key={eq}
                           onClick={() => handleAsk(eq)}
-                          className="text-xs bg-secondary hover:bg-secondary/80 text-secondary-foreground rounded-full px-3 py-1.5 transition-colors text-left"
+                          className="text-xs bg-muted/50 hover:bg-muted text-muted-foreground hover:text-foreground border border-border/40 rounded-full px-3.5 py-2 transition-all text-left leading-snug"
                         >
                           {eq}
                         </button>
@@ -236,28 +239,50 @@ export default function AskAlice({ lang }: Props) {
                 {messages.map((msg) => (
                   msg.role === 'user' ? (
                     <div key={msg.id} className="flex justify-end">
-                      <div className="bg-primary text-primary-foreground rounded-2xl rounded-br-sm px-3 py-2 text-sm max-w-[85%]">
+                      <div className="bg-foreground text-background rounded-2xl rounded-br-md px-4 py-2.5 text-sm max-w-[85%] leading-relaxed">
                         {msg.content}
                       </div>
                     </div>
                   ) : (
-                    <div key={msg.id} className="flex gap-2 items-start">
-                      <div className="shrink-0 w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center mt-0.5">
-                        <Bot className="h-4 w-4 text-primary" />
+                    <div key={msg.id} className="flex gap-3 items-start">
+                      <div className="shrink-0 w-7 h-7 rounded-full bg-muted/70 flex items-center justify-center mt-1">
+                        <Sparkles className="h-3.5 w-3.5 text-muted-foreground" />
                       </div>
-                      <div className="min-w-0 flex-1 bg-secondary/40 rounded-2xl rounded-tl-sm px-4 py-3">
+                      <div className="min-w-0 flex-1">
                         {msg.content ? (
-                          <div className="prose prose-sm max-w-none text-foreground prose-headings:text-foreground prose-headings:font-display prose-a:text-primary prose-strong:text-foreground prose-li:text-foreground">
-                            <ReactMarkdown>{msg.content}</ReactMarkdown>
+                          <div className="alice-prose text-sm text-foreground leading-[1.75]">
+                            <ReactMarkdown
+                              components={{
+                                h1: ({ children }) => <h3 className="font-display text-base font-semibold text-foreground mt-1 mb-2">{children}</h3>,
+                                h2: ({ children }) => <h4 className="font-display text-sm font-semibold text-foreground mt-3 mb-1.5">{children}</h4>,
+                                h3: ({ children }) => <h4 className="font-display text-sm font-semibold text-foreground mt-3 mb-1.5">{children}</h4>,
+                                p: ({ children }) => <p className="mb-2.5 text-foreground/90 leading-[1.75]">{children}</p>,
+                                ul: ({ children }) => <ul className="mb-3 space-y-1.5 list-none pl-0">{children}</ul>,
+                                ol: ({ children }) => <ol className="mb-3 space-y-1.5 list-decimal pl-4">{children}</ol>,
+                                li: ({ children }) => (
+                                  <li className="text-foreground/85 leading-[1.7] flex gap-2 items-baseline">
+                                    <span className="shrink-0 w-1 h-1 rounded-full bg-muted-foreground/40 mt-[0.6em]" />
+                                    <span>{children}</span>
+                                  </li>
+                                ),
+                                strong: ({ children }) => <strong className="font-semibold text-foreground">{children}</strong>,
+                                a: ({ href, children }) => <a href={href} target="_blank" rel="noopener noreferrer" className="text-primary underline underline-offset-2 decoration-primary/30 hover:decoration-primary/60 transition-colors">{children}</a>,
+                                hr: () => <hr className="my-4 border-border/40" />,
+                              }}
+                            >
+                              {msg.content}
+                            </ReactMarkdown>
                           </div>
                         ) : (
-                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                            <Loader2 className="h-4 w-4 animate-spin" />
-                            {lang === 'th' ? 'Alice กำลังวิเคราะห์...' : 'Alice is analyzing...'}
+                          <div className="flex items-center gap-2.5 text-sm text-muted-foreground py-1">
+                            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                            <span className="text-xs">
+                              {lang === 'th' ? 'Alice กำลังวิเคราะห์...' : 'Alice is analyzing...'}
+                            </span>
                           </div>
                         )}
                         {isStreaming && msg === messages[messages.length - 1] && msg.content && (
-                          <span className="inline-block w-1.5 h-4 bg-primary animate-pulse rounded-sm mt-1" />
+                          <span className="inline-block w-1 h-4 bg-foreground/30 animate-pulse rounded-sm ml-0.5" />
                         )}
                       </div>
                     </div>
@@ -266,10 +291,10 @@ export default function AskAlice({ lang }: Props) {
               </div>
 
               {/* Input */}
-              <div className="border-t border-border px-4 py-3">
+              <div className="border-t border-border/50 px-6 py-4 bg-card">
                 <form
                   onSubmit={(e) => { e.preventDefault(); handleAsk(); }}
-                  className="flex items-center gap-2"
+                  className="flex items-center gap-2.5"
                 >
                   <input
                     ref={inputRef}
@@ -277,12 +302,12 @@ export default function AskAlice({ lang }: Props) {
                     onChange={(e) => setInput(e.target.value)}
                     placeholder={lang === 'th' ? 'ถาม Alice เกี่ยวกับข่าวหรือราคาตลาด...' : 'Ask Alice about news or market prices...'}
                     disabled={isStreaming}
-                    className="flex-1 rounded-xl border border-input bg-background px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-ring disabled:opacity-50"
+                    className="flex-1 rounded-xl border border-border/60 bg-muted/30 px-4 py-3 text-sm outline-none focus:ring-1 focus:ring-ring/50 focus:border-ring/50 disabled:opacity-50 placeholder:text-muted-foreground/60 transition-all"
                   />
                   <button
                     type="submit"
                     disabled={isStreaming || !input.trim()}
-                    className="rounded-xl bg-primary text-primary-foreground p-2.5 disabled:opacity-40 hover:bg-primary/90 transition-colors"
+                    className="rounded-xl bg-foreground text-background p-3 disabled:opacity-30 hover:bg-foreground/90 transition-colors shrink-0"
                   >
                     {isStreaming ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
                   </button>
