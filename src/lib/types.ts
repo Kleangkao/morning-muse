@@ -31,6 +31,7 @@ export interface NewsItem {
 export interface Narrative {
   id: string;
   title: string;
+  titleTh?: string;
   whyItMatters: string;
   whyItMattersTh: string;
   articleCount: number;
