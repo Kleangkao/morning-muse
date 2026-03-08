@@ -823,8 +823,17 @@ Deno.serve(async (req) => {
       .from('articles')
       .delete()
       .lt('published_at', cutoff);
-
     if (deleteError) console.error('Cleanup error:', deleteError);
+
+    // Clean irrelevant articles that may have been stored before filters were added
+    const { data: allStored } = await supabase.from('articles').select('id, title, summary');
+    if (allStored?.length) {
+      const toDelete = allStored.filter(a => isIrrelevantContent(a.title, a.summary)).map(a => a.id);
+      if (toDelete.length > 0) {
+        await supabase.from('articles').delete().in('id', toDelete);
+        console.log(`Cleaned ${toDelete.length} irrelevant articles from DB`);
+      }
+    }
 
     return new Response(
       JSON.stringify({
