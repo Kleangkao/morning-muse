@@ -11,8 +11,8 @@ interface Props {
 }
 
 const momentumConfig = {
-  'Hot': { icon: Flame, color: 'text-red-600 bg-red-500/10', labelEn: 'Hot', labelTh: 'ร้อน' },
-  'Rising': { icon: TrendingUp, color: 'text-emerald-600 bg-emerald-500/10', labelEn: 'Rising', labelTh: 'กำลังขึ้น' },
+  'Hot': { icon: Flame, color: 'text-red-600 bg-red-500/10', labelEn: 'Hot', labelTh: 'ร้อนแรง' },
+  'Rising': { icon: TrendingUp, color: 'text-emerald-600 bg-emerald-500/10', labelEn: 'Rising', labelTh: 'มาแรง' },
   'Watchlist': { icon: Eye, color: 'text-amber-600 bg-amber-500/10', labelEn: 'Watch', labelTh: 'จับตา' },
 };
 
@@ -36,7 +36,7 @@ export default function NarrativeCard({ narratives, lang, categoryFilter = 'all'
   const showThai = lang === 'th';
 
   const subtitle = showThai
-    ? 'รูปแบบและธีมจากหลายข่าว'
+    ? 'ธีมที่กำลังถูกพูดถึงในตลาด'
     : 'Patterns and themes across multiple stories';
 
   return (

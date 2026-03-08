@@ -13,9 +13,9 @@ export const categoryLabels = {
     ai: 'AI',
     crypto: 'คริปโต',
     investment: 'การลงทุน',
-    macro: 'เศรษฐกิจมหภาค',
+    macro: 'มหภาค',
     'tech-stocks': 'หุ้นเทค',
-    commodities: 'สินค้าโภคภัณฑ์',
+    commodities: 'โภคภัณฑ์',
   },
 } as const;
 
@@ -38,17 +38,17 @@ export const subtopicLabels = {
   th: {
     'L1': 'L1',
     'L2': 'L2',
-    'Altcoins': 'อัลท์คอยน์',
+    'Altcoins': 'Altcoin',
     'DeFi': 'DeFi',
     'NFT': 'NFT',
-    'Stablecoins': 'เหรียญ Stablecoin',
-    'Market Movements': 'ความเคลื่อนไหวตลาด',
+    'Stablecoins': 'Stablecoin',
+    'Market Movements': 'ตลาดเคลื่อนไหว',
     'Macro Economy': 'เศรษฐกิจมหภาค',
-    'RWA': 'สินทรัพย์จริง',
+    'RWA': 'RWA',
     'On-chain': 'On-chain',
-    'Earnings': 'รายได้',
+    'Earnings': 'งบกำไร',
     'IPO': 'IPO',
-    'M&A': 'ควบรวมกิจการ',
+    'M&A': 'M&A',
   },
 } as const;
 
@@ -63,13 +63,13 @@ export const badgeLabels = {
     'On-chain': 'On-chain',
   },
   th: {
-    'Breaking': 'ข่าวด่วน',
-    'Rising': 'กำลังขึ้น',
-    'High Impact': 'ผลกระทบสูง',
+    'Breaking': 'ด่วน',
+    'Rising': 'มาแรง',
+    'High Impact': 'สำคัญ',
     'Narrative': 'เทรนด์',
     'Macro': 'มหภาค',
-    'Earnings': 'รายได้',
-    'On-chain': 'ออนเชน',
+    'Earnings': 'งบกำไร',
+    'On-chain': 'On-chain',
   },
 } as const;
 

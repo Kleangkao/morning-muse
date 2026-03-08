@@ -11,7 +11,7 @@ interface Props {
   lang: Language;
 }
 
-const CACHE_KEY_PREFIX = 'quick-scan-';
+const CACHE_KEY_PREFIX = 'quick-scan-v2-';
 const CACHE_DURATION = 15 * 60 * 1000;
 
 export default function QuickScan({ articles, narratives, lang }: Props) {
@@ -51,8 +51,8 @@ export default function QuickScan({ articles, narratives, lang }: Props) {
 
   if (bullets.length === 0 && !loading) return null;
 
-  const title = lang === 'th' ? 'สรุปเร็ววันนี้' : 'Quick Scan';
-  const subtitle = lang === 'th' ? 'สิ่งที่เปลี่ยนแปลงวันนี้ — อ่านจบใน 30 วินาที' : 'What changed today — read in 30 seconds';
+  const title = lang === 'th' ? 'ภาพรวมวันนี้' : 'Quick Scan';
+  const subtitle = lang === 'th' ? 'สรุปสั้นๆ สิ่งที่เกิดขึ้นวันนี้' : 'What changed today — read in 30 seconds';
 
   return (
     <motion.section

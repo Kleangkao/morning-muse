@@ -123,7 +123,7 @@ export default function ArticleDetailModal({ item, open, onClose, lang, thaiTitl
           {detail && detail.takeaways.length > 0 && (
             <div className="glass-card rounded-lg p-4 space-y-2">
               <h4 className="font-display text-sm font-semibold text-foreground">
-                {showThai ? '💡 จุดสำคัญ' : '💡 Key Points'}
+                {showThai ? '💡 ประเด็นสำคัญ' : '💡 Key Points'}
               </h4>
               <ul className="space-y-1.5">
                 {detail.takeaways.map((tk, i) => (
@@ -146,7 +146,7 @@ export default function ArticleDetailModal({ item, open, onClose, lang, thaiTitl
               className="flex items-center justify-center gap-2 w-full rounded-lg bg-primary text-primary-foreground py-2.5 text-sm font-semibold transition-colors hover:bg-primary/90"
             >
               <ExternalLink className="h-4 w-4" />
-              {showThai ? 'เปิดบทความต้นฉบับ' : 'Open Original Article'}
+              {showThai ? 'อ่านต้นฉบับ' : 'Open Original Article'}
             </a>
           </div>
         </div>
