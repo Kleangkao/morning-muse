@@ -5,3 +5,6 @@ verify_jwt = false
 
 [functions.enrich-articles]
 verify_jwt = false
+
+[functions.ask-alice]
+verify_jwt = false
