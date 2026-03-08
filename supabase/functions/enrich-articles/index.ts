@@ -12,6 +12,7 @@ interface ArticleSummary {
 }
 
 interface EnrichedResult {
+  thaiTitles: Record<string, string>;
   thaiSummaries: Record<string, string>;
   narratives: Array<{
     id: string;
@@ -32,7 +33,7 @@ Deno.serve(async (req) => {
   try {
     const { articles } = await req.json() as { articles: ArticleSummary[] };
     if (!articles?.length) {
-      return new Response(JSON.stringify({ thaiSummaries: {}, narratives: [] }), {
+      return new Response(JSON.stringify({ thaiTitles: {}, thaiSummaries: {}, narratives: [] }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
@@ -40,12 +41,11 @@ Deno.serve(async (req) => {
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     if (!LOVABLE_API_KEY) {
       console.error('LOVABLE_API_KEY not configured');
-      return new Response(JSON.stringify({ thaiSummaries: {}, narratives: [] }), {
+      return new Response(JSON.stringify({ thaiTitles: {}, thaiSummaries: {}, narratives: [] }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
-    // Take top 20 articles for enrichment to limit token usage
     const topArticles = articles.slice(0, 20);
 
     const articleList = topArticles.map((a, i) =>
@@ -55,10 +55,11 @@ Deno.serve(async (req) => {
     const systemPrompt = `You are a financial intelligence analyst. You will receive a list of news articles.
 
 Your tasks:
-1. For each article, write a 1-2 sentence Thai summary focused on market relevance. Be concise, high-signal, easy to scan. Use professional Thai financial language.
-2. Identify 2-5 emerging narratives by grouping related articles. For each narrative provide:
+1. For each article, translate the headline into Thai. Keep it natural and concise — a Thai reader should immediately understand the topic.
+2. For each article, write a 1-2 sentence Thai summary focused on market relevance. Be concise, high-signal, easy to scan. Use professional Thai financial language.
+3. Identify 2-5 emerging narratives by grouping related articles. For each narrative provide:
    - A compelling title (in English)
-   - A "why it matters" explanation (in Thai, 1-2 sentences)
+   - A "whyItMatters" explanation (in Thai, 1-2 sentences)
    - momentum: "Hot" if 3+ articles and very current, "Rising" if 2+ articles, "Watchlist" if emerging
 
 You MUST use the provided tool to return structured output.`;
@@ -79,10 +80,15 @@ You MUST use the provided tool to return structured output.`;
           type: 'function',
           function: {
             name: 'return_enrichment',
-            description: 'Return Thai summaries and detected narratives',
+            description: 'Return Thai titles, Thai summaries, and detected narratives',
             parameters: {
               type: 'object',
               properties: {
+                thaiTitles: {
+                  type: 'object',
+                  description: 'Map of article ID to Thai translated headline',
+                  additionalProperties: { type: 'string' },
+                },
                 thaiSummaries: {
                   type: 'object',
                   description: 'Map of article ID to Thai summary string',
@@ -104,7 +110,7 @@ You MUST use the provided tool to return structured output.`;
                   },
                 },
               },
-              required: ['thaiSummaries', 'narratives'],
+              required: ['thaiTitles', 'thaiSummaries', 'narratives'],
               additionalProperties: false,
             },
           },
@@ -116,24 +122,23 @@ You MUST use the provided tool to return structured output.`;
     if (!response.ok) {
       const errText = await response.text();
       console.error('AI gateway error:', response.status, errText);
-      return new Response(JSON.stringify({ thaiSummaries: {}, narratives: [] }), {
+      return new Response(JSON.stringify({ thaiTitles: {}, thaiSummaries: {}, narratives: [] }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
     const data = await response.json();
     const toolCall = data.choices?.[0]?.message?.tool_calls?.[0];
-    
+
     if (!toolCall?.function?.arguments) {
       console.error('No tool call in response');
-      return new Response(JSON.stringify({ thaiSummaries: {}, narratives: [] }), {
+      return new Response(JSON.stringify({ thaiTitles: {}, thaiSummaries: {}, narratives: [] }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
     const parsed = JSON.parse(toolCall.function.arguments) as EnrichedResult;
 
-    // Add IDs and article counts to narratives
     const narratives = (parsed.narratives || []).map((n, i) => ({
       ...n,
       id: `nar-live-${i}`,
@@ -142,6 +147,7 @@ You MUST use the provided tool to return structured output.`;
 
     return new Response(
       JSON.stringify({
+        thaiTitles: parsed.thaiTitles || {},
         thaiSummaries: parsed.thaiSummaries || {},
         narratives,
       }),
@@ -150,7 +156,7 @@ You MUST use the provided tool to return structured output.`;
   } catch (error) {
     console.error('Enrichment error:', error);
     return new Response(
-      JSON.stringify({ thaiSummaries: {}, narratives: [], error: error instanceof Error ? error.message : 'Unknown error' }),
+      JSON.stringify({ thaiTitles: {}, thaiSummaries: {}, narratives: [], error: error instanceof Error ? error.message : 'Unknown error' }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
