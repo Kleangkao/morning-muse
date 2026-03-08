@@ -11,6 +11,17 @@ interface ArticleSummary {
   subtopic: string;
 }
 
+const THAI_FINANCIAL_STYLE = `You are a Thai financial journalist at Bloomberg Thai.
+Write in natural, professional Thai like Thai financial media.
+
+Rules:
+- Do NOT translate literally word-by-word
+- Rewrite headlines to sound punchy and natural in Thai
+- Keep proper nouns, tickers, numbers as-is: BTC, SEC, Fed, $1.8T, NVIDIA
+- Use vocabulary common in Thai financial media
+- Short sentences, easy to scan
+- 1-2 sentences max for summaries`;
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -38,7 +49,14 @@ Deno.serve(async (req) => {
 // ─── Article Detail Handler ───
 async function handleDetail(body: any, apiKey: string) {
   const { article, lang } = body;
-  const langLabel = lang === 'th' ? 'Thai' : 'English';
+  
+  const systemPrompt = lang === 'th'
+    ? `You are a senior Thai financial analyst writing a concise briefing in Thai.
+Write like Thai financial media (Bloomberg Thai style).
+Do NOT translate literally — rewrite naturally in Thai.
+Keep tickers, numbers, proper nouns as-is: BTC, Fed, NVIDIA, $1.8T.
+Short sentences, professional tone, easy to scan.`
+    : `You are a senior financial intelligence analyst writing a concise briefing in English.`;
 
   const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
     method: 'POST',
@@ -46,8 +64,8 @@ async function handleDetail(body: any, apiKey: string) {
     body: JSON.stringify({
       model: 'google/gemini-2.5-flash',
       messages: [
-        { role: 'system', content: `You are a senior financial intelligence analyst writing a concise briefing. Write entirely in ${langLabel}. Do NOT include RSS feed text or raw excerpts. Synthesize the information into an original, high-signal analysis.` },
-        { role: 'user', content: `Article: "${article.title}" from ${article.source} (${article.category}/${article.subtopic})\nContext: ${article.summary}\n\nWrite an original analysis (do NOT copy the summary above). Structure:\n1. Three short paragraphs (2-3 sentences each):\n   - Paragraph 1: What happened (the core event or development)\n   - Paragraph 2: Why it matters (market/industry implications)\n   - Paragraph 3: What could happen next (outlook, risks, opportunities)\n2. 3-4 key takeaway bullet points (concise, actionable)\n\nReturn JSON: { "paragraphs": ["...", "...", "..."], "takeaways": ["...", "...", "..."] }` },
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: `Article: "${article.title}" from ${article.source} (${article.category}/${article.subtopic})\nContext: ${article.summary}\n\nWrite an original analysis. Structure:\n1. Three short paragraphs (2-3 sentences each):\n   - What happened\n   - Why it matters\n   - What could happen next\n2. 3-4 key takeaway bullet points\n\nReturn JSON: { "paragraphs": ["...", "...", "..."], "takeaways": ["...", "...", "..."] }` },
       ],
       response_format: { type: 'json_object' },
     }),
@@ -74,7 +92,14 @@ async function handleDetail(body: any, apiKey: string) {
 // ─── Quick Scan Handler ───
 async function handleQuickScan(body: any, apiKey: string) {
   const { briefData, lang } = body;
-  const langLabel = lang === 'th' ? 'Thai' : 'English';
+  
+  const systemPrompt = lang === 'th'
+    ? `You are a Thai financial briefing assistant.
+Write in natural Thai like Bloomberg Thai or Setthasat.
+Ultra-concise, high-signal, easy to skim in 30 seconds.
+Keep tickers and numbers as-is: BTC, ETH, Fed, $1.8T.
+Short sentences. No literal translations.`
+    : `You are a financial intelligence briefing assistant. Be ultra-concise, high-signal, easy to skim in 30 seconds.`;
 
   const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
     method: 'POST',
@@ -82,8 +107,8 @@ async function handleQuickScan(body: any, apiKey: string) {
     body: JSON.stringify({
       model: 'google/gemini-2.5-flash',
       messages: [
-        { role: 'system', content: `You are a financial intelligence briefing assistant. Write entirely in ${langLabel}. Be ultra-concise, high-signal, easy to skim in 30 seconds. Focus on immediate updates, not thematic patterns.` },
-        { role: 'user', content: `Today's top stories:\n${briefData.top}\n\nCreate a quick scan brief with 5-8 bullet points covering:\n- Key events that happened today across AI, crypto, macro, tech, commodities\n- Notable price moves or data releases\n- Each bullet: 1 sentence max, direct and factual\n\nReturn JSON: { "bullets": ["...", "..."] }` },
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: `Today's top stories:\n${briefData.top}\n\nCreate a quick scan brief with 5-8 bullet points:\n- Key events across AI, crypto, macro, tech, commodities\n- Notable price moves or data releases\n- Each bullet: 1 sentence max, direct and factual\n\nReturn JSON: { "bullets": ["...", "..."] }` },
       ],
       response_format: { type: 'json_object' },
     }),
@@ -117,8 +142,15 @@ async function translateBatch(articles: ArticleSummary[], apiKey: string): Promi
     body: JSON.stringify({
       model: 'google/gemini-2.5-flash',
       messages: [
-        { role: 'system', content: `You translate financial news headlines and summaries into Thai. Return ONLY a JSON object. Use natural Thai financial terminology. Keep it concise.` },
-        { role: 'user', content: `Translate these ${articles.length} articles into Thai. Return JSON with exactly these keys:
+        { role: 'system', content: `${THAI_FINANCIAL_STYLE}
+
+Examples:
+Original: "USDC beats Tether as stablecoin transfer volume hits $1.8T"
+Bad Thai: "USDC ชนะ Tether เมื่อปริมาณการโอน stablecoin ถึง 1.8 ล้านล้านดอลลาร์"
+Good Thai: "USDC แซง USDT หลังปริมาณโอน Stablecoin แตะ $1.8T"
+
+Return ONLY valid JSON.` },
+        { role: 'user', content: `Rewrite these ${articles.length} articles in natural Thai. Return JSON:
 {
   "thaiTitles": { "${ids[0]}": "Thai headline", ... },
   "thaiSummaries": { "${ids[0]}": "Thai summary (1-2 sentences)", ... }
@@ -197,8 +229,11 @@ async function handleEnrichment(body: any, apiKey: string) {
       body: JSON.stringify({
         model: 'google/gemini-2.5-flash',
         messages: [
-          { role: 'system', content: 'Identify 2-5 emerging narrative themes from these financial news articles. Return JSON only.' },
-          { role: 'user', content: `Articles:\n${narrativeList}\n\nReturn JSON: { "narratives": [{ "title": "English title", "titleTh": "Thai title", "whyItMatters": "English explanation", "whyItMattersTh": "Thai explanation", "momentum": "Hot|Rising|Watchlist", "articleIds": ["id1"], "category": "ai|crypto|investment|macro|tech-stocks|commodities" }] }` },
+          { role: 'system', content: `Identify 2-5 emerging narrative themes from financial news.
+For Thai titles and explanations: write naturally like Thai financial media.
+Do NOT translate literally. Keep tickers/numbers as-is.
+Return JSON only.` },
+          { role: 'user', content: `Articles:\n${narrativeList}\n\nReturn JSON: { "narratives": [{ "title": "English title", "titleTh": "Natural Thai title", "whyItMatters": "English explanation", "whyItMattersTh": "Natural Thai explanation", "momentum": "Hot|Rising|Watchlist", "articleIds": ["id1"], "category": "ai|crypto|investment|macro|tech-stocks|commodities" }] }` },
         ],
         response_format: { type: 'json_object' },
       }),
