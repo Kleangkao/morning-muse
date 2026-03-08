@@ -46,30 +46,50 @@ const RSS_FEEDS: RSSFeed[] = [
   { url: 'https://www.theblock.co/rss.xml', source: 'The Block', category: 'crypto', subtopic: 'DeFi', tier: 1 },
   { url: 'https://decrypt.co/feed', source: 'Decrypt', category: 'crypto', subtopic: 'L1', tier: 1 },
   { url: 'https://bitcoinmagazine.com/.rss/full/', source: 'Bitcoin Magazine', category: 'crypto', subtopic: 'L1', tier: 1 },
-  // Macro / Investment / Markets
+
+  // Macro / Investment / Markets — EXPANDED
   { url: 'https://www.reuters.com/rssFeed/businessNews', source: 'Reuters', category: 'macro', subtopic: 'Macro Economy', tier: 1 },
   { url: 'https://www.reuters.com/rssFeed/GCA-Commodities', source: 'Reuters Commodities', category: 'commodities', subtopic: 'Gold', tier: 1 },
+  { url: 'https://www.reuters.com/rssFeed/GCA-CentralBanksTop', source: 'Reuters Central Banks', category: 'macro', subtopic: 'Central Bank', tier: 1 },
+  { url: 'https://www.reuters.com/rssFeed/GCA-EconomicNews', source: 'Reuters Economy', category: 'macro', subtopic: 'Macro Economy', tier: 1 },
+  { url: 'https://www.reuters.com/rssFeed/GCA-BondsNews', source: 'Reuters Bonds', category: 'macro', subtopic: 'Market Movements', tier: 1 },
+  { url: 'https://www.reuters.com/rssFeed/GCA-ForeignExchange', source: 'Reuters FX', category: 'macro', subtopic: 'Macro Economy', tier: 1 },
+  { url: 'https://www.reuters.com/rssFeed/GCA-EnergyTop', source: 'Reuters Energy', category: 'commodities', subtopic: 'Oil', tier: 1 },
   { url: 'https://feeds.bbci.co.uk/news/business/rss.xml', source: 'BBC Business', category: 'macro', subtopic: 'Macro Economy', tier: 1 },
   { url: 'https://search.cnbc.com/rs/search/combinedcms/view.xml?partnerId=wrss01&id=10001147', source: 'CNBC', category: 'investment', subtopic: 'Market Movements', tier: 1 },
   { url: 'https://search.cnbc.com/rs/search/combinedcms/view.xml?partnerId=wrss01&id=15839069', source: 'CNBC Tech', category: 'tech-stocks', subtopic: 'Tech Stocks', tier: 1 },
   { url: 'https://search.cnbc.com/rs/search/combinedcms/view.xml?partnerId=wrss01&id=20910258', source: 'CNBC Economy', category: 'macro', subtopic: 'Central Bank', tier: 1 },
   { url: 'https://search.cnbc.com/rs/search/combinedcms/view.xml?partnerId=wrss01&id=10000664', source: 'CNBC Finance', category: 'investment', subtopic: 'Earnings', tier: 1 },
+  { url: 'https://search.cnbc.com/rs/search/combinedcms/view.xml?partnerId=wrss01&id=10000115', source: 'CNBC World', category: 'macro', subtopic: 'Macro Economy', tier: 1 },
+  { url: 'https://search.cnbc.com/rs/search/combinedcms/view.xml?partnerId=wrss01&id=19854910', source: 'CNBC Bonds', category: 'macro', subtopic: 'Market Movements', tier: 1 },
 
   // ═══ Tier 2: Quality Sources ═══
   // AI
-  { url: 'https://techcrunch.com/category/artificial-intelligence/feed/', source: 'TechCrunch', category: 'ai', subtopic: 'Companies', tier: 2 },
-  { url: 'https://www.theverge.com/rss/ai-artificial-intelligence/index.xml', source: 'The Verge', category: 'ai', subtopic: 'Companies', tier: 2 },
-  { url: 'https://arstechnica.com/ai/feed/', source: 'Ars Technica', category: 'ai', subtopic: 'Research', tier: 2 },
+  { url: 'https://techcrunch.com/category/artificial-intelligence/feed/', source: 'TechCrunch AI', category: 'ai', subtopic: 'Companies', tier: 2 },
+  { url: 'https://www.theverge.com/rss/ai-artificial-intelligence/index.xml', source: 'The Verge AI', category: 'ai', subtopic: 'Companies', tier: 2 },
+  { url: 'https://arstechnica.com/ai/feed/', source: 'Ars Technica AI', category: 'ai', subtopic: 'Research', tier: 2 },
   { url: 'https://www.technologyreview.com/feed/', source: 'MIT Tech Review', category: 'ai', subtopic: 'Research', tier: 2 },
   { url: 'https://venturebeat.com/category/ai/feed/', source: 'VentureBeat', category: 'ai', subtopic: 'Startups', tier: 2 },
-  // Tech Stocks
-  { url: 'https://www.theverge.com/rss/index.xml', source: 'The Verge Tech', category: 'tech-stocks', subtopic: 'Tech Stocks', tier: 2 },
-  { url: 'https://arstechnica.com/gadgets/feed/', source: 'Ars Technica Tech', category: 'tech-stocks', subtopic: 'Tech Stocks', tier: 2 },
-  // Macro / Investment
+
+  // Tech — EXPANDED
+  { url: 'https://techcrunch.com/feed/', source: 'TechCrunch', category: 'tech-stocks', subtopic: 'Tech Stocks', tier: 1 },
+  { url: 'https://www.theverge.com/rss/index.xml', source: 'The Verge', category: 'tech-stocks', subtopic: 'Tech Stocks', tier: 2 },
+  { url: 'https://arstechnica.com/gadgets/feed/', source: 'Ars Technica', category: 'tech-stocks', subtopic: 'Tech Stocks', tier: 2 },
+  { url: 'https://www.wired.com/feed/rss', source: 'Wired', category: 'tech-stocks', subtopic: 'Tech Stocks', tier: 2 },
+  { url: 'https://feeds.feedburner.com/TechCrunch/startups', source: 'TechCrunch Startups', category: 'tech-stocks', subtopic: 'Startups', tier: 2 },
+  { url: 'https://www.tomshardware.com/feeds/all', source: "Tom's Hardware", category: 'tech-stocks', subtopic: 'Tech Stocks', tier: 2 },
+  { url: 'https://siliconangle.com/feed/', source: 'SiliconANGLE', category: 'tech-stocks', subtopic: 'Tech Stocks', tier: 2 },
+  { url: 'https://9to5mac.com/feed/', source: '9to5Mac', category: 'tech-stocks', subtopic: 'Tech Stocks', tier: 2 },
+
+  // Macro — EXPANDED
   { url: 'https://feeds.marketwatch.com/marketwatch/topstories/', source: 'MarketWatch', category: 'investment', subtopic: 'Market Movements', tier: 2 },
   { url: 'https://feeds.marketwatch.com/marketwatch/marketpulse/', source: 'MarketWatch Pulse', category: 'macro', subtopic: 'Macro Economy', tier: 2 },
+  { url: 'https://feeds.marketwatch.com/marketwatch/economyandpolitics/', source: 'MarketWatch Economy', category: 'macro', subtopic: 'Macro Economy', tier: 2 },
   { url: 'https://www.investing.com/rss/news.rss', source: 'Investing.com', category: 'investment', subtopic: 'Market Movements', tier: 2 },
   { url: 'https://www.investing.com/rss/news_14.rss', source: 'Investing.com Commodities', category: 'commodities', subtopic: 'Gold', tier: 2 },
+  { url: 'https://www.investing.com/rss/news_301.rss', source: 'Investing.com Economy', category: 'macro', subtopic: 'Macro Economy', tier: 2 },
+  { url: 'https://tradingeconomics.com/rss/news.aspx', source: 'TradingEconomics', category: 'macro', subtopic: 'Macro Economy', tier: 2 },
+
   // Commodities
   { url: 'https://www.kitco.com/rss/gold.xml', source: 'Kitco Gold', category: 'commodities', subtopic: 'Gold', tier: 2 },
   { url: 'https://oilprice.com/rss/main', source: 'OilPrice', category: 'commodities', subtopic: 'Oil', tier: 2 },
@@ -456,7 +476,34 @@ async function fetchFeed(feed: RSSFeed): Promise<NormalizedArticle[]> {
   }
 }
 
-// ─── Smart Deduplication ───
+// ─── Smart Deduplication with Story Clustering ───
+
+// Extract key entities (numbers, proper nouns, tickers) from title
+function extractEntities(title: string): string[] {
+  const entities: string[] = [];
+  // Extract dollar amounts, percentages, large numbers
+  const numbers = title.match(/\$[\d,.]+\s*(?:trillion|billion|million|T|B|M)?/gi) || [];
+  entities.push(...numbers.map(n => n.toLowerCase().replace(/\s+/g, '')));
+  const percents = title.match(/[\d.]+%/g) || [];
+  entities.push(...percents);
+  // Extract tickers and known names
+  const tickers = title.match(/\b(?:BTC|ETH|SOL|XRP|DOGE|NVDA|AAPL|MSFT|GOOGL|AMZN|TSLA|META)\b/gi) || [];
+  entities.push(...tickers.map(t => t.toUpperCase()));
+  return entities;
+}
+
+// Categories that tend to produce many duplicates — use more aggressive thresholds
+const AGGRESSIVE_DEDUP_CATEGORIES = new Set(['macro', 'commodities', 'investment']);
+const AGGRESSIVE_DEDUP_KEYWORDS = [
+  'etf', 'oil', 'gold', 'crude', 'bitcoin etf', 'regulation', 'fed', 'interest rate',
+  'inflation', 'tariff', 'sanctions', 'stablecoin', 'cbdc', 'sec ',
+];
+
+function isAggressiveDedupCandidate(article: NormalizedArticle): boolean {
+  if (AGGRESSIVE_DEDUP_CATEGORIES.has(article.category)) return true;
+  const text = `${article.title} ${article.summary}`.toLowerCase();
+  return AGGRESSIVE_DEDUP_KEYWORDS.some(k => text.includes(k));
+}
 
 function similarityScore(a: string, b: string): number {
   const wordsA = new Set(a.toLowerCase().replace(/[^a-z0-9\s]/g, '').split(/\s+/).filter(w => w.length > 3));
@@ -467,36 +514,75 @@ function similarityScore(a: string, b: string): number {
   return overlap / Math.min(wordsA.size, wordsB.size);
 }
 
+function entityOverlap(a: string[], b: string[]): number {
+  if (a.length === 0 || b.length === 0) return 0;
+  const setB = new Set(b);
+  let matches = 0;
+  for (const e of a) { if (setB.has(e)) matches++; }
+  return matches / Math.max(a.length, b.length);
+}
+
 function smartDeduplicate(articles: NormalizedArticle[]): NormalizedArticle[] {
   const urlSeen = new Set<string>();
   const kept: NormalizedArticle[] = [];
   const sorted = [...articles].sort((a, b) => b.signal_score - a.signal_score);
 
   for (const article of sorted) {
-    const normalizedUrl = article.url.replace(/\/$/, '').replace(/\?.*$/, '');
+    // 1. Exact URL dedup
+    const normalizedUrl = article.url.replace(/\/$/, '').replace(/\?.*$/, '').replace(/#.*$/, '');
     if (urlSeen.has(normalizedUrl)) continue;
     urlSeen.add(normalizedUrl);
 
     let isDuplicate = false;
+    const articleEntities = extractEntities(article.title);
+    const isAggressive = isAggressiveDedupCandidate(article);
+
     for (const existing of kept) {
+      // 2. Same title hash = definite duplicate
       if (article.title_hash === existing.title_hash) {
         existing.related_sources = [...new Set([...existing.related_sources, article.source])];
         existing.related_count = existing.related_sources.length;
-        // Inherit image if primary doesn't have one
         if (!existing.image_url && article.image_url) existing.image_url = article.image_url;
         isDuplicate = true;
         break;
       }
+
       const sim = similarityScore(article.title, existing.title);
       const timeDiffHours = Math.abs(new Date(article.published_at).getTime() - new Date(existing.published_at).getTime()) / (1000 * 60 * 60);
-      if (sim >= 0.6 && timeDiffHours < 12) {
+
+      // 3. Same source + similar title = duplicate (lower threshold)
+      if (article.source === existing.source && sim >= 0.4 && timeDiffHours < 24) {
+        isDuplicate = true;
+        break;
+      }
+
+      // 4. Entity-based clustering: same entities + similar event wording
+      const existingEntities = extractEntities(existing.title);
+      const eOverlap = entityOverlap(articleEntities, existingEntities);
+
+      // 5. Aggressive dedup for market-moving topics
+      const aggressiveThreshold = (isAggressive || isAggressiveDedupCandidate(existing)) ? 0.35 : 0.5;
+      const aggressiveTimeWindow = isAggressive ? 18 : 12;
+
+      if (sim >= 0.6 && timeDiffHours < aggressiveTimeWindow) {
         existing.related_sources = [...new Set([...existing.related_sources, article.source])];
         existing.related_count = existing.related_sources.length;
         if (!existing.image_url && article.image_url) existing.image_url = article.image_url;
         isDuplicate = true;
         break;
       }
-      if (sim >= 0.4 && article.category === existing.category && timeDiffHours < 6) {
+
+      // Cross-source same event: similar title + same category + recent
+      if (sim >= aggressiveThreshold && article.category === existing.category && timeDiffHours < aggressiveTimeWindow) {
+        existing.related_sources = [...new Set([...existing.related_sources, article.source])];
+        existing.related_count = existing.related_sources.length;
+        if (!existing.image_url && article.image_url) existing.image_url = article.image_url;
+        isDuplicate = true;
+        break;
+      }
+
+      // Entity + similarity combo: if entities match and titles are somewhat similar
+      if (eOverlap >= 0.5 && sim >= 0.3 && article.category === existing.category && timeDiffHours < 12) {
         existing.related_sources = [...new Set([...existing.related_sources, article.source])];
         existing.related_count = existing.related_sources.length;
         if (!existing.image_url && article.image_url) existing.image_url = article.image_url;
@@ -510,16 +596,20 @@ function smartDeduplicate(articles: NormalizedArticle[]): NormalizedArticle[] {
 }
 
 // ─── Source Diversity ───
-// Limit max articles per source to ensure diversity
-function applySourceDiversity(articles: NormalizedArticle[], maxPerSource: number = 8): NormalizedArticle[] {
+// Limit max articles per source, with category balancing
+function applySourceDiversity(articles: NormalizedArticle[], maxPerSource: number = 6): NormalizedArticle[] {
   const sourceCounts = new Map<string, number>();
+  const categoryCounts = new Map<string, number>();
   const result: NormalizedArticle[] = [];
-  // Already sorted by score — take best per source up to limit
+  const maxPerCategory = 25; // ensure no single category dominates
+
   for (const article of articles) {
-    const count = sourceCounts.get(article.source) || 0;
-    if (count < maxPerSource) {
+    const srcCount = sourceCounts.get(article.source) || 0;
+    const catCount = categoryCounts.get(article.category) || 0;
+    if (srcCount < maxPerSource && catCount < maxPerCategory) {
       result.push(article);
-      sourceCounts.set(article.source, count + 1);
+      sourceCounts.set(article.source, srcCount + 1);
+      categoryCounts.set(article.category, catCount + 1);
     }
   }
   return result;
