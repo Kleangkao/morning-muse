@@ -92,14 +92,27 @@ Short sentences, professional tone, easy to scan.`
 // ─── Quick Scan Handler ───
 async function handleQuickScan(body: any, apiKey: string) {
   const { briefData, lang } = body;
+  const todayDate = briefData.todayDate || new Date().toISOString().slice(0, 10);
   
+  const freshnessInstructions = `
+CRITICAL FRESHNESS RULES:
+- Today's date is ${todayDate}. Only summarize GENUINELY NEW developments.
+- Each article includes "(Xh ago)" — ONLY include stories from the last 12 hours.
+- DO NOT include: old milestones, recycled headlines, evergreen explainers, old analysis.
+- If a headline says "BTC hits $X" or "Fed holds rates" — only include if it happened TODAY with a new development.
+- If a story is background context (older analysis, market history), SKIP it entirely.
+- Focus ONLY on: new events, fresh data releases, breaking developments, newly active stories.
+- Every bullet must describe something that CHANGED or HAPPENED in the last few hours.`;
+
   const systemPrompt = lang === 'th'
     ? `You are a Thai financial briefing assistant.
 Write in natural Thai like Bloomberg Thai or Setthasat.
 Ultra-concise, high-signal, easy to skim in 30 seconds.
 Keep tickers and numbers as-is: BTC, ETH, Fed, $1.8T.
-Short sentences. No literal translations.`
-    : `You are a financial intelligence briefing assistant. Be ultra-concise, high-signal, easy to skim in 30 seconds.`;
+Short sentences. No literal translations.
+${freshnessInstructions}`
+    : `You are a financial intelligence briefing assistant. Be ultra-concise, high-signal, easy to skim in 30 seconds.
+${freshnessInstructions}`;
 
   const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
     method: 'POST',
@@ -108,7 +121,7 @@ Short sentences. No literal translations.`
       model: 'google/gemini-2.5-flash',
       messages: [
         { role: 'system', content: systemPrompt },
-        { role: 'user', content: `Today's top stories:\n${briefData.top}\n\nCreate a quick scan brief with 5-8 bullet points:\n- Key events across AI, crypto, macro, tech, commodities\n- Notable price moves or data releases\n- Each bullet: 1 sentence max, direct and factual\n\nReturn JSON: { "bullets": ["...", "..."] }` },
+        { role: 'user', content: `Today's date: ${todayDate}\nTop stories (with age in hours):\n${briefData.top}\n\nCreate a quick scan brief with 5-8 bullet points covering ONLY genuinely fresh developments:\n- Skip any story older than 12 hours unless it has a brand new update\n- Skip recycled milestones, old analysis, evergreen content\n- Key events across AI, crypto, macro, tech, commodities\n- Notable price moves or data releases FROM TODAY\n- Each bullet: 1 sentence max, direct and factual\n\nReturn JSON: { "bullets": ["...", "..."] }` },
       ],
       response_format: { type: 'json_object' },
     }),
