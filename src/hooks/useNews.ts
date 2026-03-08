@@ -125,29 +125,41 @@ export function useNews(prefs: UserPreferences) {
 
       if (error || !data) return;
 
-      if (data.thaiTitles && Object.keys(data.thaiTitles).length > 0) {
-        setThaiTitles(data.thaiTitles);
+      const newThaiTitles = data.thaiTitles && Object.keys(data.thaiTitles).length > 0 
+        ? data.thaiTitles 
+        : {};
+      const newThaiSummaries = data.thaiSummaries && Object.keys(data.thaiSummaries).length > 0 
+        ? data.thaiSummaries 
+        : {};
+
+      if (Object.keys(newThaiTitles).length > 0) {
+        setThaiTitles(newThaiTitles);
       }
-      if (data.thaiSummaries && Object.keys(data.thaiSummaries).length > 0) {
-        setThaiSummaries(data.thaiSummaries);
+      if (Object.keys(newThaiSummaries).length > 0) {
+        setThaiSummaries(newThaiSummaries);
       }
 
-      if (data.narratives?.length > 0) {
-        const narrs: Narrative[] = data.narratives.map((n: any) => ({
-          id: n.id,
-          title: n.title,
-          whyItMatters: n.whyItMatters,
-          whyItMattersTh: n.whyItMattersTh || n.whyItMatters,
-          articleCount: n.articleCount || n.articleIds?.length || 0,
-          category: n.category as any,
-          momentum: n.momentum as any,
-          articleIds: n.articleIds || [],
-        }));
+      const narrs: Narrative[] = (data.narratives || []).map((n: any) => ({
+        id: n.id,
+        title: n.title,
+        whyItMatters: n.whyItMatters,
+        whyItMattersTh: n.whyItMattersTh || n.whyItMatters,
+        articleCount: n.articleCount || n.articleIds?.length || 0,
+        category: n.category as any,
+        momentum: n.momentum as any,
+        articleIds: n.articleIds || [],
+      }));
+      
+      if (narrs.length > 0) {
         setNarratives(narrs);
+      }
+
+      // Always save cache when we get Thai translations (not just when narratives exist)
+      if (Object.keys(newThaiTitles).length > 0 || Object.keys(newThaiSummaries).length > 0 || narrs.length > 0) {
         saveEnrichmentCache({
-          thaiTitles: data.thaiTitles || {},
-          thaiSummaries: data.thaiSummaries || {},
-          narratives: narrs,
+          thaiTitles: newThaiTitles,
+          thaiSummaries: newThaiSummaries,
+          narratives: narrs.length > 0 ? narrs : narratives, // Keep existing narratives if none returned
           fetchedAt: new Date().toISOString(),
         });
       }
