@@ -230,11 +230,38 @@ const SUBTOPIC_KEYWORDS: Record<string, string[]> = {
 const CATEGORY_KEYWORDS: Record<string, string[]> = {
   'ai': ['artificial intelligence', 'ai', 'machine learning', 'deep learning', 'neural network', 'llm', 'gpt', 'claude', 'gemini', 'openai', 'anthropic', 'deepmind', 'transformer', 'chatbot', 'generative ai'],
   'crypto': ['bitcoin', 'btc', 'ethereum', 'eth', 'crypto', 'blockchain', 'defi', 'nft', 'web3', 'token', 'solana', 'altcoin', 'memecoin', 'staking', 'mining'],
-  'macro': ['federal reserve', 'fed', 'inflation', 'gdp', 'interest rate', 'recession', 'central bank', 'ecb', 'monetary policy', 'fiscal', 'geopolit', 'tariff', 'sanctions'],
+  'macro': ['federal reserve', 'fed', 'inflation', 'gdp', 'interest rate', 'recession', 'central bank', 'ecb', 'monetary policy', 'fiscal', 'geopolit', 'tariff', 'sanctions', 'tax', 'taxation', 'duty', 'duties', 'import tax', 'export tax', 'trade war', 'antitrust', 'regulation', 'regulatory', 'lawsuit', 'legal', 'court ruling', 'fine', 'penalty', 'compliance'],
   'tech-stocks': ['nvidia', 'nvda', 'aapl', 'msft', 'googl', 'amzn', 'tsla', 'magnificent seven', 'tech stock', 'nasdaq', 'semiconductor', 'chip'],
   'commodities': ['gold', 'silver', 'oil', 'crude', 'commodity', 'precious metal', 'copper', 'natural gas', 'xau', 'xag', 'wti', 'brent'],
   'investment': ['market', 'stock', 'bond', 'fund', 'etf', 'portfolio', 'investor', 'wall street', 'dow', 's&p'],
 };
+
+// ─── Content-based Re-categorization ───
+// Override category when content clearly belongs elsewhere regardless of source feed
+const RECATEGORIZE_RULES: Array<{ patterns: RegExp[]; targetCategory: string; targetSubtopic: string }> = [
+  // Tax / tariff / trade policy → macro
+  { patterns: [/\btax(?:es|ation|ed)?\b/i, /\btariff/i, /\bduty|duties\b/i, /\btrade\s*war/i, /\bimport\s*(?:tax|duty|ban)/i, /\bexport\s*(?:tax|duty|ban)/i], targetCategory: 'macro', targetSubtopic: 'Macro Economy' },
+  // Regulation / legal / antitrust → macro
+  { patterns: [/\bantitrust/i, /\bregulat(?:ion|ory|or)\b/i, /\blawsuit/i, /\bcourt\s*rul/i, /\bfine[sd]?\s+\$[\d]/i, /\bpenalt/i, /\bsanction/i], targetCategory: 'macro', targetSubtopic: 'Macro Economy' },
+  // Gaming / entertainment (not tech) — when combined with tax/regulation/legal
+  { patterns: [/\bnintendo\b/i, /\bsony\b.*\bgam/i, /\bplaystation\b/i, /\bxbox\b/i, /\bgaming\b.*\b(?:tax|tariff|regulat|lawsuit|ban|fine)/i], targetCategory: 'macro', targetSubtopic: 'Macro Economy' },
+];
+
+function recategorize(title: string, summary: string, category: string, subtopic: string): { category: string; subtopic: string } {
+  const text = `${title} ${summary}`.toLowerCase();
+
+  for (const rule of RECATEGORIZE_RULES) {
+    const matchCount = rule.patterns.filter(p => p.test(text)).length;
+    if (matchCount >= 1) {
+      // Only recategorize if it's currently in a "wrong" category
+      // e.g. tax news from tech-stocks source should go to macro
+      if (category === 'tech-stocks' || category === 'ai') {
+        return { category: rule.targetCategory, subtopic: rule.targetSubtopic };
+      }
+    }
+  }
+  return { category, subtopic };
+}
 
 function classifyCategory(title: string, summary: string, defaultCategory: string): string {
   const text = `${title} ${summary}`.toLowerCase();
@@ -433,8 +460,12 @@ async function fetchFeed(feed: RSSFeed): Promise<NormalizedArticle[]> {
 
     return items.slice(0, 15).map(item => {
       const summary = item.description.slice(0, 300) + (item.description.length > 300 ? '…' : '');
-      const category = classifyCategory(item.title, summary, feed.category);
-      const subtopic = classifySubtopic(item.title, summary, feed.subtopic || '');
+      let category = classifyCategory(item.title, summary, feed.category);
+      let subtopic = classifySubtopic(item.title, summary, feed.subtopic || '');
+      // Apply re-categorization rules (e.g. Nintendo tax → macro)
+      const recat = recategorize(item.title, summary, category, subtopic);
+      category = recat.category;
+      subtopic = recat.subtopic;
       const { level: impact_level, score: signal_score } = scoreImpact(item.title, summary, tierBonus);
       const market_direction = inferDirection(item.title, summary);
       const published_at = item.pubDate ? new Date(item.pubDate).toISOString() : new Date().toISOString();
@@ -551,7 +582,7 @@ function smartDeduplicate(articles: NormalizedArticle[]): NormalizedArticle[] {
       const timeDiffHours = Math.abs(new Date(article.published_at).getTime() - new Date(existing.published_at).getTime()) / (1000 * 60 * 60);
 
       // 3. Same source + similar title = duplicate (lower threshold)
-      if (article.source === existing.source && sim >= 0.4 && timeDiffHours < 24) {
+      if (article.source === existing.source && sim >= 0.3 && timeDiffHours < 24) {
         isDuplicate = true;
         break;
       }
@@ -561,10 +592,11 @@ function smartDeduplicate(articles: NormalizedArticle[]): NormalizedArticle[] {
       const eOverlap = entityOverlap(articleEntities, existingEntities);
 
       // 5. Aggressive dedup for market-moving topics
-      const aggressiveThreshold = (isAggressive || isAggressiveDedupCandidate(existing)) ? 0.35 : 0.5;
-      const aggressiveTimeWindow = isAggressive ? 18 : 12;
+      const bothAggressive = isAggressive || isAggressiveDedupCandidate(existing);
+      const aggressiveThreshold = bothAggressive ? 0.28 : 0.42;
+      const aggressiveTimeWindow = bothAggressive ? 24 : 14;
 
-      if (sim >= 0.6 && timeDiffHours < aggressiveTimeWindow) {
+      if (sim >= 0.5 && timeDiffHours < aggressiveTimeWindow) {
         existing.related_sources = [...new Set([...existing.related_sources, article.source])];
         existing.related_count = existing.related_sources.length;
         if (!existing.image_url && article.image_url) existing.image_url = article.image_url;
@@ -572,8 +604,10 @@ function smartDeduplicate(articles: NormalizedArticle[]): NormalizedArticle[] {
         break;
       }
 
-      // Cross-source same event: similar title + same category + recent
-      if (sim >= aggressiveThreshold && article.category === existing.category && timeDiffHours < aggressiveTimeWindow) {
+      // Cross-source same event: similar title + same or related category + recent
+      const relatedCategories = article.category === existing.category || 
+        (new Set(['macro', 'investment', 'commodities']).has(article.category) && new Set(['macro', 'investment', 'commodities']).has(existing.category));
+      if (sim >= aggressiveThreshold && relatedCategories && timeDiffHours < aggressiveTimeWindow) {
         existing.related_sources = [...new Set([...existing.related_sources, article.source])];
         existing.related_count = existing.related_sources.length;
         if (!existing.image_url && article.image_url) existing.image_url = article.image_url;
@@ -582,7 +616,7 @@ function smartDeduplicate(articles: NormalizedArticle[]): NormalizedArticle[] {
       }
 
       // Entity + similarity combo: if entities match and titles are somewhat similar
-      if (eOverlap >= 0.5 && sim >= 0.3 && article.category === existing.category && timeDiffHours < 12) {
+      if (eOverlap >= 0.4 && sim >= 0.25 && relatedCategories && timeDiffHours < 18) {
         existing.related_sources = [...new Set([...existing.related_sources, article.source])];
         existing.related_count = existing.related_sources.length;
         if (!existing.image_url && article.image_url) existing.image_url = article.image_url;
