@@ -162,14 +162,6 @@ export default function Dashboard({ prefs, setPrefs, saved, read, onToggleSave, 
             lastUpdated={lastUpdated}
             isLive={isLive}
           />
-            narratives={demoNarratives}
-            newCount={unreadCount}
-            highImpactCount={highImpactCount}
-            hottestNarrative={hottestNarrative}
-            strongestCategory={categoryLabels[strongestCategory] || strongestCategory}
-            lastUpdated={lastUpdated}
-            isLive={isLive}
-          />
 
           {activeFilter === 'all' ? (
             <>
