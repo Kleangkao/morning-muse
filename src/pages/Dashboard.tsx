@@ -102,9 +102,9 @@ export default function Dashboard({ prefs, setPrefs, saved, read, onToggleSave, 
       >
         <div className="absolute inset-0 backdrop-blur-md bg-black/35" />
       </div>
-      <div className="flex-1 min-w-0">
+      <div className="relative z-10 flex-1 min-w-0">
         {/* Header */}
-        <header className="sticky top-0 z-40 bg-background/90 backdrop-blur-md border-b border-border/50">
+        <header className="sticky top-0 z-40 bg-card/80 backdrop-blur-md border-b border-border/50">
           <div className="px-4 pt-3 pb-2">
             <div className="flex items-center justify-between mb-1">
               <div className="flex items-center gap-2">
