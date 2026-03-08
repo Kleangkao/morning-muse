@@ -94,10 +94,17 @@ export default function Dashboard({ prefs, setPrefs, saved, read, onToggleSave, 
   const cardProps = { saved, read, onToggleSave, onMarkRead, onMuteSource, thaiTitles, thaiSummaries, lang, onOpenDetail: handleOpenDetail };
 
   return (
-    <div className="min-h-screen bg-background flex">
-      <div className="flex-1 min-w-0">
+    <div className="min-h-screen relative flex">
+      {/* Background image with blur + overlay */}
+      <div
+        className="fixed inset-0 z-0 bg-cover bg-center bg-no-repeat"
+        style={{ backgroundImage: "url('/images/alice-bg.png')" }}
+      >
+        <div className="absolute inset-0 backdrop-blur-md bg-black/35" />
+      </div>
+      <div className="relative z-10 flex-1 min-w-0">
         {/* Header */}
-        <header className="sticky top-0 z-40 bg-background/90 backdrop-blur-md border-b border-border/50">
+        <header className="sticky top-0 z-40 bg-card/80 backdrop-blur-md border-b border-border/50">
           <div className="px-4 pt-3 pb-2">
             <div className="flex items-center justify-between mb-1">
               <div className="flex items-center gap-2">
