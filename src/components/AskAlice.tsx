@@ -158,16 +158,27 @@ export default function AskAlice({ lang }: Props) {
 
   return (
     <>
-      {/* Floating button */}
-      <motion.button
-        onClick={() => { setOpen(true); setTimeout(() => inputRef.current?.focus(), 100); }}
-        className="fixed bottom-5 right-5 z-50 flex items-center gap-2.5 rounded-full bg-foreground px-6 py-3.5 text-background font-medium shadow-lg hover:shadow-xl transition-all"
-        whileHover={{ scale: 1.04 }}
-        whileTap={{ scale: 0.97 }}
-      >
-        <Sparkles className="h-4 w-4" />
-        <span className="text-sm tracking-wide">{label}</span>
-      </motion.button>
+      {/* Floating button with Alice character */}
+      <div className="fixed bottom-5 right-5 z-50 flex flex-col items-center">
+        <motion.img
+          src="/images/alice-character.png"
+          alt="Alice"
+          className="w-16 h-16 object-contain mb-1 pointer-events-none drop-shadow-lg"
+          initial={{ y: 0 }}
+          animate={{ y: [0, -4, 0] }}
+          transition={{ duration: 2.5, repeat: Infinity, ease: 'easeInOut' }}
+          whileHover={{ y: -12 }}
+        />
+        <motion.button
+          onClick={() => { setOpen(true); setTimeout(() => inputRef.current?.focus(), 100); }}
+          className="flex items-center gap-2.5 rounded-full bg-foreground px-6 py-3.5 text-background font-medium shadow-lg hover:shadow-xl transition-all group"
+          whileHover={{ scale: 1.04 }}
+          whileTap={{ scale: 0.97 }}
+        >
+          <Sparkles className="h-4 w-4" />
+          <span className="text-sm tracking-wide">{label}</span>
+        </motion.button>
+      </div>
 
       {/* Panel overlay */}
       <AnimatePresence>

@@ -58,7 +58,7 @@ export default function QuickScan({ articles, narratives, lang }: Props) {
     <motion.section
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
-      className="rounded-lg border border-primary/15 bg-primary/[0.03] p-4 space-y-2.5"
+      className="rounded-lg border border-primary/20 bg-card/90 backdrop-blur-sm p-4 space-y-2.5 shadow-sm"
     >
       <div className="flex items-center gap-2">
         <Zap className="h-4 w-4 text-primary" />
