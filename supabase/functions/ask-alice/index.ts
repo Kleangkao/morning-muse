@@ -138,19 +138,27 @@ function formatMarketResponse(assets: AssetQuery, prices: Record<string, any>, l
       const change = p.usd_24h_change?.toFixed(2);
       const arrow = Number(change) >= 0 ? "🟢" : "🔴";
       const sign = Number(change) >= 0 ? "+" : "";
-      lines.push(`### ${assets.labels[id]} ${arrow}\n**${price}**\n24h: ${sign}${change}%`);
+      const trend = Number(change) >= 0 ? (lang === "th" ? "ขาขึ้น" : "Trending up") : (lang === "th" ? "ขาลง" : "Trending down");
+      lines.push(`### ${assets.labels[id]} ${arrow}\n**${price}** (24h: ${sign}${change}%)\n${trend}`);
     }
     if (lines.length === 0) {
-      return lang === "th" ? "ไม่สามารถดึงข้อมูลราคาได้ในขณะนี้" : "Unable to fetch price data at this time.";
+      return lang === "th" ? "⚠️ ไม่สามารถดึงข้อมูลราคาได้ในขณะนี้" : "⚠️ Unable to fetch price data at this time.";
     }
-    const header = lang === "th" ? "## 📊 ราคาตลาดล่าสุด" : "## 📊 Latest Market Prices";
+    const header = lang === "th" ? "## 📊 ภาพรวมตลาด" : "## 📊 Market Snapshot";
+    const watchHeader = lang === "th" ? "### สิ่งที่ต้องจับตา" : "### What to Watch";
+    const watchItems = lang === "th"
+      ? "- แนวโน้มอัตราดอกเบี้ยและนโยบาย Fed\n- ปริมาณการซื้อขายและ sentiment ตลาด\n- ข่าวกฎระเบียบและ ETF flow"
+      : "- Interest rate expectations and Fed policy\n- Trading volume and market sentiment\n- Regulatory news and ETF flow data";
+    const riskNote = lang === "th"
+      ? "\n\n### ⚠️ หมายเหตุความเสี่ยง\nคริปโตมีความผันผวนสูง ราคาอาจเปลี่ยนแปลงอย่างรวดเร็ว"
+      : "\n\n### ⚠️ Risk Note\nCrypto assets are highly volatile. Prices can change rapidly.";
     const footer = lang === "th" ? "\n\n*ข้อมูลจาก CoinGecko*" : "\n\n*Data from CoinGecko*";
-    return header + "\n\n" + lines.join("\n\n") + footer;
+    return header + "\n\n" + lines.join("\n\n") + "\n\n" + watchHeader + "\n" + watchItems + riskNote + footer;
   }
 
   const note = lang === "th"
-    ? "## 📊 ข้อมูลตลาด\n\nขณะนี้ระบบรองรับราคาเรียลไทม์สำหรับคริปโตเท่านั้น (BTC, ETH, SOL ฯลฯ)\n\nสำหรับข้อมูล Gold, Oil, Nasdaq กรุณาถามเกี่ยวกับข่าวที่เกี่ยวข้องแทน"
-    : "## 📊 Market Data\n\nReal-time prices are currently available for crypto assets (BTC, ETH, SOL, etc.).\n\nFor Gold, Oil, Nasdaq — try asking about related news instead.";
+    ? "## 📊 ข้อมูลตลาด\n\n⚠️ ข้อมูลราคาเรียลไทม์สำหรับสินทรัพย์นี้ยังไม่เชื่อมต่อ\n\nระบบรองรับราคาเรียลไทม์สำหรับคริปโต (BTC, ETH, SOL ฯลฯ)\n\nสำหรับ Gold, Oil, Nasdaq — ลองถามเกี่ยวกับข่าวหรือการวิเคราะห์ที่เกี่ยวข้องแทน"
+    : "## 📊 Market Data\n\n⚠️ Live market price is not currently connected for this asset.\n\nReal-time prices are available for crypto (BTC, ETH, SOL, etc.).\n\nFor Gold, Oil, Nasdaq — try asking about related news or analysis instead.";
   return note;
 }
 
