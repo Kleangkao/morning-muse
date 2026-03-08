@@ -90,7 +90,7 @@ export default function Dashboard({ prefs, setPrefs, saved, read, onToggleSave, 
     setDetailItem(item);
   };
 
-  const cardProps = { saved, read, onToggleSave, onMarkRead, onMuteSource, thaiTitles, thaiSummaries, showThai, onOpenDetail: handleOpenDetail };
+  const cardProps = { saved, read, onToggleSave, onMarkRead, onMuteSource, thaiTitles, thaiSummaries, lang, onOpenDetail: handleOpenDetail };
 
   return (
     <div className="min-h-screen bg-background flex">
