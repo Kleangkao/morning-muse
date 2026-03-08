@@ -664,6 +664,55 @@ function markTopSignals(articles: NormalizedArticle[]): NormalizedArticle[] {
   });
 }
 
+// ─── Irrelevant Content Filter ───
+// Remove Web2 gaming, lifestyle, consumer electronics that don't match our topics
+const IRRELEVANT_PATTERNS: RegExp[] = [
+  // Pure Web2 gaming (not GameFi/blockchain)
+  /\b(?:steam\s*machine|steam\s*deck|playstation|xbox|ps5|ps4|switch\s*2|game\s*pass)\b/i,
+  /\b(?:gta|call\s*of\s*duty|fortnite|minecraft|valorant|overwatch|zelda|mario|elden\s*ring)\b/i,
+  /\b(?:dlc|expansion\s*pack|game\s*update|patch\s*notes|game\s*review|game\s*trailer)\b/i,
+  /\b(?:fps|rpg|mmorpg)\b.*\b(?:game|play|release)/i,
+  // Retro gaming / consoles (unless related to business/valuation)
+  /\b(?:retro\s*gaming|emulat(?:or|ion)|rom|cartridge|clone\s*console)\b/i,
+  // Consumer electronics / lifestyle
+  /\b(?:best\s+(?:mid\s+layer|hiking|backpack|travel|laptop bag|headphones|earbuds))\b/i,
+  /\b(?:buying\s*guide|gift\s*guide|product\s*review|unboxing)\b/i,
+  /\b(?:furby|tamagotchi|toy|lego)\b/i,
+  // Hybrid vehicles / automotive (not EV/Tesla business)
+  /\b(?:hybrid\s*vehicle|car\s*review|test\s*drive|mpg|fuel\s*economy)\b/i,
+  // Home / lifestyle / cooking
+  /\b(?:recipe|cooking|kitchen|garden|home\s*improvement|diy\s*project)\b/i,
+  // Linux hacking on consoles (hobbyist, not business)
+  /\blinux\s*(?:hacked|installed|running)\s*(?:on|onto)\b/i,
+  // Consumer watchdog / enshittification (opinion, not market-moving)
+  /\benshittification\b/i,
+  // Robovac / smart home
+  /\b(?:robovac|robot\s*vacuum|smart\s*home|thermostat)\b/i,
+];
+
+// Keywords that OVERRIDE the irrelevant filter (keep the article)
+const RELEVANCE_OVERRIDES: RegExp[] = [
+  /\b(?:gamefi|web3\s*gaming|play.to.earn|blockchain\s*game|nft\s*game|token|crypto)\b/i,
+  /\b(?:ipo|valuation|billion|million|acquisition|merger|stock|shares|revenue|earnings)\b/i,
+  /\b(?:tariff|tax|lawsuit|regulation|antitrust|ban|sanction)\b/i,
+  /\b(?:etf|fed|inflation|interest\s*rate|gdp)\b/i,
+  /\b(?:ai|artificial\s*intelligence|llm|gpt|claude|gemini|openai|anthropic)\b/i,
+];
+
+function isIrrelevantContent(title: string, summary: string): boolean {
+  const text = `${title} ${summary}`.toLowerCase();
+  
+  // Check if any irrelevant pattern matches
+  const matchesIrrelevant = IRRELEVANT_PATTERNS.some(p => p.test(text));
+  if (!matchesIrrelevant) return false;
+  
+  // Check overrides - if it's about business/finance/crypto/AI aspects, keep it
+  const hasOverride = RELEVANCE_OVERRIDES.some(p => p.test(text));
+  if (hasOverride) return false;
+  
+  return true; // irrelevant
+}
+
 // ─── Main Handler ───
 
 Deno.serve(async (req) => {
@@ -685,8 +734,38 @@ Deno.serve(async (req) => {
     }
     console.log(`Fetched ${allArticles.length} total articles`);
 
+    // Filter out irrelevant Web2/lifestyle content
+    const beforeFilter = allArticles.length;
+    allArticles = allArticles.filter(a => !isIrrelevantContent(a.title, a.summary));
+    const filtered = beforeFilter - allArticles.length;
+    if (filtered > 0) console.log(`Filtered ${filtered} irrelevant articles`);
+
     allArticles = smartDeduplicate(allArticles);
     console.log(`${allArticles.length} after dedup`);
+
+    // ─── DB-level title_hash dedup ───
+    // Fetch existing title_hashes from DB to prevent cross-run duplicates
+    const { data: existingRows } = await supabase
+      .from('articles')
+      .select('id, title_hash, related_sources, related_count, image_url');
+    
+    if (existingRows?.length) {
+      const existingByHash = new Map<string, typeof existingRows[0]>();
+      for (const row of existingRows) {
+        if (row.title_hash) existingByHash.set(row.title_hash, row);
+      }
+      
+      // Remove articles whose title_hash already exists in DB under a different id
+      allArticles = allArticles.filter(article => {
+        const existing = existingByHash.get(article.title_hash);
+        if (existing && existing.id !== article.id) {
+          // Merge related_sources into existing record (will update below)
+          return false;
+        }
+        return true;
+      });
+      console.log(`${allArticles.length} after DB title_hash dedup`);
+    }
 
     // Sort by signal then recency
     allArticles.sort((a, b) => {
@@ -724,6 +803,7 @@ Deno.serve(async (req) => {
         articlesStored: allArticles.length,
         fetchedAt: new Date().toISOString(),
         feedCount: RSS_FEEDS.length,
+        filteredIrrelevant: filtered,
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
