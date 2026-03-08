@@ -1,15 +1,25 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { demoNews } from '@/lib/demo-data';
-import { UserPreferences, Interest } from '@/lib/types';
+import { UserPreferences, TopicCategory } from '@/lib/types';
 import NewsCard from '@/components/NewsCard';
 import BottomNav from '@/components/BottomNav';
-import { Sun } from 'lucide-react';
+import { Sun, Search, X } from 'lucide-react';
 
 interface Props {
   prefs: UserPreferences;
   saved: string[];
+  read: string[];
   onToggleSave: (id: string) => void;
+  onToggleRead: (id: string) => void;
+  onMuteSource: (source: string) => void;
 }
+
+const FILTER_TABS: { id: TopicCategory | 'all'; label: string }[] = [
+  { id: 'all', label: 'All' },
+  { id: 'ai', label: '🤖 AI' },
+  { id: 'crypto', label: '₿ Crypto' },
+  { id: 'investment', label: '📈 Investment' },
+];
 
 function getGreeting() {
   const h = new Date().getHours();
@@ -18,44 +28,135 @@ function getGreeting() {
   return 'Good evening';
 }
 
-export default function TodayPage({ prefs, saved, onToggleSave }: Props) {
-  const filtered = useMemo(() => {
-    if (prefs.interests.length === 0) return demoNews;
-    return demoNews.filter(n => prefs.interests.includes(n.category as Interest));
-  }, [prefs.interests]);
+export default function TodayPage({ prefs, saved, read, onToggleSave, onToggleRead, onMuteSource }: Props) {
+  const [activeFilter, setActiveFilter] = useState<TopicCategory | 'all'>('all');
+  const [search, setSearch] = useState('');
+  const [showSearch, setShowSearch] = useState(false);
+
+  const articles = useMemo(() => {
+    return demoNews.filter(n => {
+      if (prefs.mutedSources.includes(n.source)) return false;
+      if (activeFilter !== 'all' && n.category !== activeFilter && !n.isTopSignal) return false;
+      if (search) {
+        const q = search.toLowerCase();
+        return n.title.toLowerCase().includes(q) || n.summary.toLowerCase().includes(q) || n.source.toLowerCase().includes(q) || (n.subtopic?.toLowerCase().includes(q) ?? false);
+      }
+      return true;
+    });
+  }, [activeFilter, search, prefs.mutedSources]);
+
+  const topSignals = articles.filter(a => a.isTopSignal);
+  const aiArticles = articles.filter(a => a.category === 'ai' && !a.isTopSignal);
+  const cryptoArticles = articles.filter(a => a.category === 'crypto' && !a.isTopSignal);
+  const investmentArticles = articles.filter(a => a.category === 'investment' && !a.isTopSignal);
+
+  const showSections = activeFilter === 'all';
+  const flatList = !showSections ? articles.filter(a => !a.isTopSignal || activeFilter === 'all') : [];
 
   const today = new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
+  const unreadCount = articles.filter(a => !read.includes(a.id)).length;
 
   return (
     <div className="min-h-screen bg-background safe-bottom">
-      <header className="sticky top-0 z-40 bg-background/80 backdrop-blur-md border-b border-border/50 px-5 pt-5 pb-4">
-        <div className="flex items-center gap-2 mb-1">
-          <Sun className="h-5 w-5 text-primary" />
-          <span className="text-sm font-semibold text-primary">Morning Feed</span>
+      {/* Header */}
+      <header className="sticky top-0 z-40 bg-background/90 backdrop-blur-md border-b border-border/50">
+        <div className="px-4 pt-4 pb-3">
+          <div className="flex items-center justify-between mb-1">
+            <div className="flex items-center gap-2">
+              <Sun className="h-5 w-5 text-primary" />
+              <span className="text-sm font-bold text-primary tracking-wide">Morning Feed</span>
+            </div>
+            <button onClick={() => setShowSearch(!showSearch)} className="rounded-full p-2 hover:bg-secondary transition-colors">
+              {showSearch ? <X className="h-5 w-5 text-foreground" /> : <Search className="h-5 w-5 text-muted-foreground" />}
+            </button>
+          </div>
+          <h1 className="text-2xl font-display">{getGreeting()}</h1>
+          <p className="text-sm text-muted-foreground">{today} · {unreadCount} unread</p>
+
+          {/* Search */}
+          {showSearch && (
+            <input
+              autoFocus
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              placeholder="Search headlines, sources, topics…"
+              className="mt-3 w-full rounded-lg border border-input bg-background px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-ring"
+            />
+          )}
         </div>
-        <h1 className="text-2xl font-display">{getGreeting()}</h1>
-        <p className="text-sm text-muted-foreground">{today} · {filtered.length} stories</p>
+
+        {/* Filter chips */}
+        <div className="flex gap-2 px-4 pb-3 overflow-x-auto scrollbar-none">
+          {FILTER_TABS.map(tab => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveFilter(tab.id)}
+              className={`shrink-0 rounded-full px-3.5 py-1.5 text-xs font-semibold transition-all ${
+                activeFilter === tab.id
+                  ? 'bg-primary text-primary-foreground'
+                  : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
+              }`}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
       </header>
 
-      <main className="px-4 py-4 space-y-3 max-w-lg mx-auto">
-        {filtered.map((item, i) => (
-          <NewsCard
-            key={item.id}
-            item={item}
-            saved={saved.includes(item.id)}
-            onToggleSave={onToggleSave}
-            index={i}
-          />
-        ))}
-        {filtered.length === 0 && (
+      <main className="px-4 py-4 max-w-lg mx-auto space-y-6">
+        {showSections ? (
+          <>
+            {topSignals.length > 0 && (
+              <FeedSection title="⚡ Top Signals" items={topSignals} saved={saved} read={read} onToggleSave={onToggleSave} onToggleRead={onToggleRead} onMuteSource={onMuteSource} />
+            )}
+            {aiArticles.length > 0 && (
+              <FeedSection title="🤖 AI" items={aiArticles} saved={saved} read={read} onToggleSave={onToggleSave} onToggleRead={onToggleRead} onMuteSource={onMuteSource} />
+            )}
+            {cryptoArticles.length > 0 && (
+              <FeedSection title="₿ Crypto" items={cryptoArticles} saved={saved} read={read} onToggleSave={onToggleSave} onToggleRead={onToggleRead} onMuteSource={onMuteSource} />
+            )}
+            {investmentArticles.length > 0 && (
+              <FeedSection title="📈 Investment" items={investmentArticles} saved={saved} read={read} onToggleSave={onToggleSave} onToggleRead={onToggleRead} onMuteSource={onMuteSource} />
+            )}
+          </>
+        ) : (
+          <div className="space-y-3">
+            {flatList.map((item, i) => (
+              <NewsCard key={item.id} item={item} saved={saved.includes(item.id)} isRead={read.includes(item.id)} onToggleSave={onToggleSave} onToggleRead={onToggleRead} onMuteSource={onMuteSource} index={i} />
+            ))}
+          </div>
+        )}
+
+        {articles.length === 0 && (
           <div className="text-center py-20 text-muted-foreground">
-            <p className="text-lg font-display">No stories yet</p>
-            <p className="text-sm mt-1">Update your interests in Settings.</p>
+            <p className="text-lg font-display">No results</p>
+            <p className="text-sm mt-1">{search ? 'Try a different search.' : 'Adjust your filters or unmute sources in Settings.'}</p>
           </div>
         )}
       </main>
 
       <BottomNav />
     </div>
+  );
+}
+
+function FeedSection({ title, items, saved, read, onToggleSave, onToggleRead, onMuteSource }: {
+  title: string;
+  items: import('@/lib/types').NewsItem[];
+  saved: string[];
+  read: string[];
+  onToggleSave: (id: string) => void;
+  onToggleRead: (id: string) => void;
+  onMuteSource: (source: string) => void;
+}) {
+  return (
+    <section>
+      <h2 className="font-display text-xl mb-3 px-1">{title}</h2>
+      <div className="space-y-3">
+        {items.map((item, i) => (
+          <NewsCard key={item.id} item={item} saved={saved.includes(item.id)} isRead={read.includes(item.id)} onToggleSave={onToggleSave} onToggleRead={onToggleRead} onMuteSource={onMuteSource} index={i} />
+        ))}
+      </div>
+    </section>
   );
 }

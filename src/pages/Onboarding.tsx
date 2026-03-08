@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { UserPreferences, Interest, DEFAULT_INTERESTS, DEFAULT_SOURCES } from '@/lib/types';
+import { UserPreferences, TopicCategory, TOPIC_CONFIG, ALL_SOURCES } from '@/lib/types';
 import { ChevronRight, ChevronLeft, Plus, X } from 'lucide-react';
 
 interface Props {
@@ -14,9 +14,9 @@ export default function OnboardingPage({ prefs, setPrefs }: Props) {
   const navigate = useNavigate();
   const [keyword, setKeyword] = useState('');
 
-  const steps = ['Interests', 'Keywords', 'Sources', 'Schedule'];
+  const steps = ['Topics', 'Keywords', 'Sources', 'Schedule'];
 
-  const toggleInterest = (id: Interest) => {
+  const toggleInterest = (id: TopicCategory) => {
     setPrefs(p => ({
       ...p,
       interests: p.interests.includes(id) ? p.interests.filter(i => i !== id) : [...p.interests, id],
@@ -47,7 +47,6 @@ export default function OnboardingPage({ prefs, setPrefs }: Props) {
 
   return (
     <div className="flex min-h-screen flex-col bg-background px-5 py-8">
-      {/* Progress */}
       <div className="flex gap-1.5 mb-8">
         {steps.map((_, i) => (
           <div key={i} className={`h-1 flex-1 rounded-full transition-colors ${i <= step ? 'bg-primary' : 'bg-border'}`} />
@@ -65,21 +64,24 @@ export default function OnboardingPage({ prefs, setPrefs }: Props) {
         >
           {step === 0 && (
             <div>
-              <h1 className="text-3xl font-display mb-2">What are you into?</h1>
-              <p className="text-muted-foreground mb-6">Pick topics for your morning feed.</p>
-              <div className="grid grid-cols-2 gap-3">
-                {DEFAULT_INTERESTS.map(({ id, label, emoji }) => {
+              <h1 className="text-3xl font-display mb-2">What do you track?</h1>
+              <p className="text-muted-foreground mb-6">Pick the markets and topics for your morning brief.</p>
+              <div className="space-y-3">
+                {TOPIC_CONFIG.map(({ id, label, emoji, description }) => {
                   const selected = prefs.interests.includes(id);
                   return (
                     <button
                       key={id}
                       onClick={() => toggleInterest(id)}
-                      className={`flex items-center gap-3 rounded-lg border-2 p-4 text-left transition-all ${
+                      className={`flex w-full items-center gap-4 rounded-lg border-2 p-4 text-left transition-all ${
                         selected ? 'border-primary bg-primary/10' : 'border-border hover:border-primary/40'
                       }`}
                     >
                       <span className="text-2xl">{emoji}</span>
-                      <span className="font-medium">{label}</span>
+                      <div>
+                        <div className="font-semibold">{label}</div>
+                        <div className="text-sm text-muted-foreground">{description}</div>
+                      </div>
                     </button>
                   );
                 })}
@@ -96,7 +98,7 @@ export default function OnboardingPage({ prefs, setPrefs }: Props) {
                   value={keyword}
                   onChange={e => setKeyword(e.target.value)}
                   onKeyDown={e => e.key === 'Enter' && addKeyword()}
-                  placeholder="e.g. Figma, Solana, Rust…"
+                  placeholder="e.g. Solana, NVIDIA, DeFi…"
                   className="flex-1 rounded-lg border border-input bg-background px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-ring"
                 />
                 <button onClick={addKeyword} className="rounded-lg bg-primary p-2.5 text-primary-foreground">
@@ -114,7 +116,7 @@ export default function OnboardingPage({ prefs, setPrefs }: Props) {
                 ))}
               </div>
               {prefs.customKeywords.length === 0 && (
-                <p className="text-sm text-muted-foreground mt-4">This is optional — skip if you like.</p>
+                <p className="text-sm text-muted-foreground mt-4">Optional — skip if you like.</p>
               )}
             </div>
           )}
@@ -123,14 +125,14 @@ export default function OnboardingPage({ prefs, setPrefs }: Props) {
             <div>
               <h1 className="text-3xl font-display mb-2">Preferred sources</h1>
               <p className="text-muted-foreground mb-6">We'll prioritize these in your feed.</p>
-              <div className="space-y-2">
-                {DEFAULT_SOURCES.map(s => {
+              <div className="flex flex-wrap gap-2">
+                {ALL_SOURCES.map(s => {
                   const selected = prefs.sources.includes(s);
                   return (
                     <button
                       key={s}
                       onClick={() => toggleSource(s)}
-                      className={`w-full rounded-lg border-2 p-3 text-left text-sm font-medium transition-all ${
+                      className={`rounded-full border-2 px-3 py-1.5 text-sm font-medium transition-all ${
                         selected ? 'border-primary bg-primary/10' : 'border-border hover:border-primary/40'
                       }`}
                     >
@@ -145,26 +147,22 @@ export default function OnboardingPage({ prefs, setPrefs }: Props) {
           {step === 3 && (
             <div>
               <h1 className="text-3xl font-display mb-2">Morning time</h1>
-              <p className="text-muted-foreground mb-6">When should your feed be ready?</p>
+              <p className="text-muted-foreground mb-6">When should your brief be ready?</p>
               <input
                 type="time"
                 value={prefs.morningTime}
                 onChange={e => setPrefs({ morningTime: e.target.value })}
                 className="w-full rounded-lg border border-input bg-background px-4 py-3 text-lg outline-none focus:ring-2 focus:ring-ring"
               />
-              <p className="text-sm text-muted-foreground mt-3">We'll have your personalized feed ready by this time.</p>
+              <p className="text-sm text-muted-foreground mt-3">We'll curate your personalized intelligence feed by this time.</p>
             </div>
           )}
         </motion.div>
       </AnimatePresence>
 
-      {/* Navigation */}
       <div className="flex items-center justify-between pt-6">
         {step > 0 ? (
-          <button
-            onClick={() => setStep(s => s - 1)}
-            className="flex items-center gap-1 text-sm font-medium text-muted-foreground"
-          >
+          <button onClick={() => setStep(s => s - 1)} className="flex items-center gap-1 text-sm font-medium text-muted-foreground">
             <ChevronLeft className="h-4 w-4" /> Back
           </button>
         ) : <div />}
@@ -178,10 +176,7 @@ export default function OnboardingPage({ prefs, setPrefs }: Props) {
             Next <ChevronRight className="h-4 w-4" />
           </button>
         ) : (
-          <button
-            onClick={finish}
-            className="rounded-full bg-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground"
-          >
+          <button onClick={finish} className="rounded-full bg-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground">
             Start Reading ☀️
           </button>
         )}
