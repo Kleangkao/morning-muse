@@ -123,30 +123,44 @@ export function useNews(prefs: UserPreferences) {
         body: { articles: summaries },
       });
 
-      if (error || !data) return;
-
-      if (data.thaiTitles && Object.keys(data.thaiTitles).length > 0) {
-        setThaiTitles(data.thaiTitles);
-      }
-      if (data.thaiSummaries && Object.keys(data.thaiSummaries).length > 0) {
-        setThaiSummaries(data.thaiSummaries);
+      if (error || !data) {
+        console.log('[Enrichment] Error or no data:', error);
+        return;
       }
 
-      if (data.narratives?.length > 0) {
-        const narrs: Narrative[] = data.narratives.map((n: any) => ({
-          id: n.id,
-          title: n.title,
-          whyItMatters: n.whyItMatters,
-          whyItMattersTh: n.whyItMattersTh || n.whyItMatters,
-          articleCount: n.articleCount || n.articleIds?.length || 0,
-          category: n.category as any,
-          momentum: n.momentum as any,
-          articleIds: n.articleIds || [],
-        }));
+      console.log('[Enrichment] Received:', Object.keys(data.thaiTitles || {}).length, 'Thai titles');
+
+      const newThaiTitles = data.thaiTitles && Object.keys(data.thaiTitles).length > 0 
+        ? data.thaiTitles 
+        : {};
+      const newThaiSummaries = data.thaiSummaries && Object.keys(data.thaiSummaries).length > 0 
+        ? data.thaiSummaries 
+        : {};
+
+      // Always update state with new translations
+      setThaiTitles(prev => ({ ...prev, ...newThaiTitles }));
+      setThaiSummaries(prev => ({ ...prev, ...newThaiSummaries }));
+
+      const narrs: Narrative[] = (data.narratives || []).map((n: any) => ({
+        id: n.id,
+        title: n.title,
+        whyItMatters: n.whyItMatters,
+        whyItMattersTh: n.whyItMattersTh || n.whyItMatters,
+        articleCount: n.articleCount || n.articleIds?.length || 0,
+        category: n.category as any,
+        momentum: n.momentum as any,
+        articleIds: n.articleIds || [],
+      }));
+      
+      if (narrs.length > 0) {
         setNarratives(narrs);
+      }
+
+      // Always save cache when we get Thai translations
+      if (Object.keys(newThaiTitles).length > 0 || Object.keys(newThaiSummaries).length > 0 || narrs.length > 0) {
         saveEnrichmentCache({
-          thaiTitles: data.thaiTitles || {},
-          thaiSummaries: data.thaiSummaries || {},
+          thaiTitles: newThaiTitles,
+          thaiSummaries: newThaiSummaries,
           narratives: narrs,
           fetchedAt: new Date().toISOString(),
         });
