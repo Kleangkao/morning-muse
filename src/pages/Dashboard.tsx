@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { UserPreferences, TopicCategory, NewsItem, Narrative } from '@/lib/types';
 import { useNews } from '@/hooks/useNews';
-import { demoNarratives } from '@/lib/demo-data';
+
 import NewsCard from '@/components/NewsCard';
 import NarrativeCard from '@/components/NarrativeCard';
 import DashboardHeader from '@/components/DashboardHeader';
