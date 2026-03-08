@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=IBM+Plex+Sans+Thai:wght@300;400;500;600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -6,45 +6,45 @@
 
 @layer base {
   :root {
-    --background: 40 33% 98%;
-    --foreground: 30 10% 12%;
+    --background: 220 14% 96%;
+    --foreground: 220 20% 10%;
 
-    --card: 40 30% 99%;
-    --card-foreground: 30 10% 12%;
+    --card: 0 0% 100%;
+    --card-foreground: 220 20% 10%;
 
-    --popover: 40 30% 99%;
-    --popover-foreground: 30 10% 12%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 220 20% 10%;
 
-    --primary: 28 80% 52%;
-    --primary-foreground: 40 33% 98%;
+    --primary: 220 70% 50%;
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 35 30% 93%;
-    --secondary-foreground: 30 10% 25%;
+    --secondary: 220 14% 92%;
+    --secondary-foreground: 220 15% 30%;
 
-    --muted: 35 20% 94%;
-    --muted-foreground: 30 8% 50%;
+    --muted: 220 12% 93%;
+    --muted-foreground: 220 10% 46%;
 
-    --accent: 28 80% 52%;
-    --accent-foreground: 40 33% 98%;
+    --accent: 220 70% 50%;
+    --accent-foreground: 0 0% 100%;
 
     --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 35 20% 90%;
-    --input: 35 20% 88%;
-    --ring: 28 80% 52%;
+    --border: 220 13% 90%;
+    --input: 220 13% 87%;
+    --ring: 220 70% 50%;
 
-    --radius: 1rem;
+    --radius: 0.75rem;
 
-    --surface-warm: 35 40% 96%;
-    --surface-glass: 40 20% 100%;
-    --text-secondary: 30 8% 45%;
-    --highlight: 45 95% 60%;
-    --success: 155 60% 45%;
+    --surface-warm: 220 14% 97%;
+    --surface-glass: 0 0% 100%;
+    --text-secondary: 220 10% 46%;
+    --highlight: 48 96% 53%;
+    --success: 160 60% 45%;
     --info: 210 60% 55%;
 
-    --font-display: 'Instrument Serif', serif;
-    --font-body: 'DM Sans', sans-serif;
+    --font-display: 'Inter', 'IBM Plex Sans Thai', sans-serif;
+    --font-body: 'Inter', 'IBM Plex Sans Thai', sans-serif;
 
     --sidebar-background: 0 0% 98%;
     --sidebar-foreground: 240 5.3% 26.1%;
@@ -65,8 +65,9 @@
     @apply bg-background text-foreground;
     font-family: var(--font-body);
     -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
-  h1, h2, h3 {
+  h1, h2, h3, h4, h5, h6 {
     font-family: var(--font-display);
   }
 }
@@ -79,7 +80,7 @@
     font-family: var(--font-body);
   }
   .glass-card {
-    @apply bg-card/80 backdrop-blur-sm border border-border/50 shadow-sm;
+    @apply bg-card border border-border/60 shadow-[0_1px_3px_0_rgb(0_0_0/0.04),0_1px_2px_-1px_rgb(0_0_0/0.04)];
   }
   .safe-bottom {
     padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 5rem);
