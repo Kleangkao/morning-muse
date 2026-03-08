@@ -146,7 +146,7 @@ export default function Dashboard({ prefs, setPrefs, saved, read, onToggleSave, 
           {/* Quick Scan — first */}
           {activeFilter === 'all' && <QuickScan articles={articles} narratives={liveNarratives} lang={lang} />}
 
-          {/* X Signals */}
+          {/* X Signals — always visible, filtered by active category */}
           <XSignalPlaceholder lang={lang} xArticles={xArticles} />
 
           {activeFilter === 'all' ? (
