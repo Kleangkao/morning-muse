@@ -21,6 +21,10 @@ interface NormalizedArticle {
   publishedAt: string;
   readTime: number;
   isTopSignal: boolean;
+  impactLevel: 'low' | 'medium' | 'high';
+  marketDirection: 'bullish' | 'bearish' | 'neutral';
+  badges: string[];
+  signalScore: number;
 }
 
 const RSS_FEEDS: RSSFeed[] = [
@@ -32,7 +36,7 @@ const RSS_FEEDS: RSSFeed[] = [
   { url: 'https://venturebeat.com/category/ai/feed/', source: 'VentureBeat', category: 'ai', subtopic: 'Startups' },
 
   // Crypto
-  { url: 'https://www.coindesk.com/arc/outboundfeeds/rss/', source: 'CoinDesk', category: 'crypto', subtopic: 'L1/L2' },
+  { url: 'https://www.coindesk.com/arc/outboundfeeds/rss/', source: 'CoinDesk', category: 'crypto', subtopic: 'L1' },
   { url: 'https://decrypt.co/feed', source: 'Decrypt', category: 'crypto', subtopic: 'DeFi' },
   { url: 'https://cointelegraph.com/rss', source: 'CoinTelegraph', category: 'crypto', subtopic: 'Altcoins' },
   { url: 'https://thedefiant.io/feed', source: 'The Defiant', category: 'crypto', subtopic: 'DeFi' },
@@ -45,42 +49,162 @@ const RSS_FEEDS: RSSFeed[] = [
   { url: 'https://feeds.marketwatch.com/marketwatch/topstories/', source: 'MarketWatch', category: 'investment', subtopic: 'Market Movements' },
 ];
 
-// Keywords for classifying subtopics more precisely
+// ─── HTML Entity Decoding ───
+
+const HTML_ENTITIES: Record<string, string> = {
+  '&amp;': '&', '&lt;': '<', '&gt;': '>', '&quot;': '"',
+  '&#039;': "'", '&apos;': "'", '&nbsp;': ' ',
+  '&mdash;': '—', '&ndash;': '–', '&hellip;': '…',
+  '&lsquo;': '\u2018', '&rsquo;': '\u2019',
+  '&ldquo;': '\u201C', '&rdquo;': '\u201D',
+  '&bull;': '•', '&middot;': '·', '&copy;': '©',
+  '&reg;': '®', '&trade;': '™', '&euro;': '€',
+  '&pound;': '£', '&yen;': '¥', '&cent;': '¢',
+};
+
+function decodeHtmlEntities(text: string): string {
+  // Named entities
+  let result = text;
+  for (const [entity, char] of Object.entries(HTML_ENTITIES)) {
+    result = result.replaceAll(entity, char);
+  }
+  // Hex entities: &#x2018; &#x2019; etc.
+  result = result.replace(/&#x([0-9a-fA-F]+);/g, (_, hex) => {
+    try { return String.fromCodePoint(parseInt(hex, 16)); } catch { return ''; }
+  });
+  // Decimal entities: &#8217; etc.
+  result = result.replace(/&#(\d+);/g, (_, dec) => {
+    try { return String.fromCodePoint(parseInt(dec, 10)); } catch { return ''; }
+  });
+  return result;
+}
+
+function stripHtml(html: string): string {
+  return decodeHtmlEntities(
+    html
+      .replace(/<!\[CDATA\[(.*?)\]\]>/gs, '$1')
+      .replace(/<[^>]*>/g, '')
+      .trim()
+  );
+}
+
+// ─── Subtopic Classification ───
+
 const SUBTOPIC_KEYWORDS: Record<string, string[]> = {
   'Gold': ['gold', 'xau', 'bullion', 'precious metal'],
   'Silver': ['silver', 'xag'],
-  'Tech Stocks': ['nvidia', 'apple', 'microsoft', 'google', 'alphabet', 'amazon', 'meta', 'tesla', 'stock', 'shares', 'earnings', 'nasdaq', 'magnificent'],
-  'Macro Economy': ['fed', 'federal reserve', 'inflation', 'gdp', 'interest rate', 'recession', 'stimulus', 'economy', 'employment', 'jobs'],
-  'Market Movements': ['s&p', 'dow jones', 'rally', 'crash', 'bull', 'bear', 'market cap', 'ipo'],
-  'L1/L2': ['ethereum', 'bitcoin', 'solana', 'layer 2', 'l2', 'rollup', 'base', 'arbitrum', 'optimism', 'btc', 'eth'],
-  'DeFi': ['defi', 'uniswap', 'aave', 'lending', 'liquidity', 'tvl', 'yield', 'amm', 'swap'],
-  'Memecoins': ['meme', 'doge', 'shib', 'pepe', 'memecoin'],
-  'RWA': ['rwa', 'tokeniz', 'real world asset', 'treasury'],
-  'DePIN': ['depin', 'helium', 'decentralized infrastructure'],
-  'GameFi': ['gamefi', 'gaming', 'nft game', 'play to earn', 'immutable'],
-  'Prediction Markets': ['polymarket', 'prediction market', 'betting'],
-  'Altcoins': ['altcoin', 'sui', 'aptos', 'avalanche', 'cardano', 'polkadot'],
-  'Models': ['gpt', 'claude', 'llama', 'gemini', 'model', 'benchmark', 'llm', 'transformer', 'training'],
-  'Startups': ['startup', 'funding', 'raised', 'valuation', 'series a', 'series b', 'seed round', 'venture'],
-  'Research': ['research', 'paper', 'arxiv', 'breakthrough', 'deepmind', 'openai research'],
-  'Companies': ['microsoft', 'google', 'meta', 'apple', 'amazon', 'openai', 'anthropic', 'copilot', 'agent'],
+  'Tech Stocks': ['nvidia', 'apple', 'microsoft', 'google', 'alphabet', 'amazon', 'meta', 'tesla', 'stock', 'shares', 'earnings', 'nasdaq', 'magnificent', 'aapl', 'msft', 'nvda', 'googl', 'amzn', 'tsla'],
+  'Macro Economy': ['fed', 'federal reserve', 'inflation', 'gdp', 'interest rate', 'recession', 'stimulus', 'economy', 'employment', 'jobs', 'cpi', 'pce', 'treasury', 'yield curve', 'unemployment', 'payroll'],
+  'Central Bank': ['central bank', 'ecb', 'boj', 'bank of england', 'pboc', 'rate decision', 'rate cut', 'rate hike', 'monetary policy', 'quantitative', 'fomc'],
+  'Market Movements': ['s&p', 'dow jones', 'rally', 'crash', 'bull', 'bear', 'market cap', 'ipo', 'all-time high', 'correction', 'sell-off', 'volatility', 'vix'],
+  'Earnings': ['earnings', 'revenue', 'profit', 'quarterly results', 'guidance', 'beat expectations', 'missed expectations', 'eps', 'q1', 'q2', 'q3', 'q4'],
+  'L1': ['bitcoin', 'btc', 'ethereum', 'eth', 'solana', 'sol', 'layer 1', 'l1', 'blockchain', 'proof of stake', 'proof of work', 'mainnet'],
+  'L2': ['layer 2', 'l2', 'rollup', 'base', 'arbitrum', 'optimism', 'zksync', 'starknet', 'polygon zkevm', 'op stack', 'blob'],
+  'DeFi': ['defi', 'uniswap', 'aave', 'lending', 'liquidity', 'tvl', 'yield', 'amm', 'swap', 'lido', 'staking', 'restaking', 'eigenlayer', 'compound', 'makerdao'],
+  'Memecoins': ['meme', 'doge', 'shib', 'pepe', 'memecoin', 'bonk', 'wif', 'floki', 'pump.fun'],
+  'RWA': ['rwa', 'tokeniz', 'real world asset', 'treasury token', 'ondo', 'securitize', 'buidl'],
+  'DePIN': ['depin', 'helium', 'decentralized infrastructure', 'hivemapper', 'render', 'decentralized physical'],
+  'GameFi': ['gamefi', 'gaming', 'nft game', 'play to earn', 'immutable', 'axie', 'illuvium', 'web3 gaming'],
+  'Prediction Markets': ['polymarket', 'prediction market', 'betting', 'kalshi', 'augur'],
+  'Altcoins': ['altcoin', 'sui', 'aptos', 'avalanche', 'cardano', 'polkadot', 'cosmos', 'near', 'sei', 'injective', 'tia', 'celestia'],
+  'Models': ['gpt', 'claude', 'llama', 'gemini', 'model', 'benchmark', 'llm', 'transformer', 'training', 'fine-tun', 'reasoning', 'multimodal', 'context window'],
+  'Startups': ['startup', 'funding', 'raised', 'valuation', 'series a', 'series b', 'seed round', 'venture', 'accelerator', 'yc', 'y combinator'],
+  'Research': ['research', 'paper', 'arxiv', 'breakthrough', 'deepmind', 'openai research', 'scientific', 'algorithm'],
+  'Companies': ['microsoft', 'google', 'meta', 'apple', 'amazon', 'openai', 'anthropic', 'copilot', 'agent', 'enterprise ai'],
 };
+
+// Category re-classification keywords
+const CATEGORY_KEYWORDS: Record<string, string[]> = {
+  'ai': ['artificial intelligence', 'ai', 'machine learning', 'deep learning', 'neural network', 'llm', 'gpt', 'claude', 'gemini', 'openai', 'anthropic', 'deepmind', 'transformer', 'chatbot', 'generative ai'],
+  'crypto': ['bitcoin', 'btc', 'ethereum', 'eth', 'crypto', 'blockchain', 'defi', 'nft', 'web3', 'token', 'solana', 'altcoin', 'memecoin', 'staking', 'mining'],
+  'macro': ['federal reserve', 'fed', 'inflation', 'gdp', 'interest rate', 'recession', 'central bank', 'ecb', 'monetary policy', 'fiscal', 'geopolit', 'tariff', 'sanctions'],
+  'tech-stocks': ['nvidia', 'nvda', 'aapl', 'msft', 'googl', 'amzn', 'tsla', 'magnificent seven', 'tech stock', 'nasdaq', 'semiconductor', 'chip'],
+  'commodities': ['gold', 'silver', 'oil', 'crude', 'commodity', 'precious metal', 'copper', 'natural gas', 'xau', 'xag', 'wti', 'brent'],
+};
+
+function classifyCategory(title: string, summary: string, defaultCategory: string): string {
+  const text = `${title} ${summary}`.toLowerCase();
+  let bestCat = defaultCategory;
+  let bestScore = 0;
+  for (const [cat, keywords] of Object.entries(CATEGORY_KEYWORDS)) {
+    const score = keywords.filter(k => text.includes(k)).length;
+    if (score > bestScore) { bestScore = score; bestCat = cat; }
+  }
+  return bestScore >= 2 ? bestCat : defaultCategory;
+}
 
 function classifySubtopic(title: string, summary: string, defaultSubtopic: string): string {
   const text = `${title} ${summary}`.toLowerCase();
   let bestMatch = defaultSubtopic;
   let bestScore = 0;
-
   for (const [subtopic, keywords] of Object.entries(SUBTOPIC_KEYWORDS)) {
     const score = keywords.filter(k => text.includes(k)).length;
-    if (score > bestScore) {
-      bestScore = score;
-      bestMatch = subtopic;
-    }
+    if (score > bestScore) { bestScore = score; bestMatch = subtopic; }
   }
-
   return bestMatch;
 }
+
+// ─── Impact Scoring ───
+
+const HIGH_IMPACT_KEYWORDS = [
+  'federal reserve', 'fed rate', 'rate cut', 'rate hike', 'fomc', 'central bank',
+  'etf approved', 'etf inflow', 'etf launch', 'bitcoin etf', 'ethereum etf',
+  'regulation', 'sec', 'ban', 'lawsuit', 'sanction', 'executive order',
+  'raises', 'funding round', 'ipo', 'acquisition', 'merger',
+  'all-time high', 'record', 'crash', 'collapse', 'hack', 'exploit',
+  'gpt-5', 'gpt-6', 'claude', 'gemini', 'llama', 'model launch',
+  'earnings beat', 'earnings miss', 'revenue record',
+  'war', 'invasion', 'crisis', 'emergency', 'breaking',
+  'trillion', 'billion',
+];
+
+const MEDIUM_IMPACT_KEYWORDS = [
+  'partnership', 'integration', 'launch', 'update', 'upgrade',
+  'growth', 'surge', 'rally', 'decline', 'drop',
+  'report', 'analysis', 'forecast', 'outlook',
+  'adoption', 'institutional', 'enterprise',
+  'testnet', 'mainnet', 'airdrop', 'tokenomics',
+];
+
+function scoreImpact(title: string, summary: string): { level: 'low' | 'medium' | 'high'; score: number } {
+  const text = `${title} ${summary}`.toLowerCase();
+  let highHits = HIGH_IMPACT_KEYWORDS.filter(k => text.includes(k)).length;
+  let medHits = MEDIUM_IMPACT_KEYWORDS.filter(k => text.includes(k)).length;
+
+  if (highHits >= 3) return { level: 'high', score: Math.min(98, 80 + highHits * 4) };
+  if (highHits >= 1) return { level: 'high', score: Math.min(92, 70 + highHits * 8 + medHits * 2) };
+  if (medHits >= 3) return { level: 'medium', score: Math.min(75, 55 + medHits * 5) };
+  if (medHits >= 1) return { level: 'medium', score: Math.min(65, 45 + medHits * 5) };
+  return { level: 'low', score: 30 + Math.floor(Math.random() * 15) };
+}
+
+function inferDirection(title: string, summary: string): 'bullish' | 'bearish' | 'neutral' {
+  const text = `${title} ${summary}`.toLowerCase();
+  const bullish = ['surge', 'rally', 'record', 'all-time high', 'growth', 'beat', 'bullish', 'inflow', 'adoption', 'upgrade', 'launch', 'approved', 'rises', 'jumps', 'soars', 'gains'].filter(k => text.includes(k)).length;
+  const bearish = ['crash', 'collapse', 'hack', 'exploit', 'ban', 'decline', 'drop', 'bearish', 'sell-off', 'outflow', 'warning', 'risk', 'falls', 'plunges', 'slumps', 'losses'].filter(k => text.includes(k)).length;
+  if (bullish > bearish + 1) return 'bullish';
+  if (bearish > bullish + 1) return 'bearish';
+  if (bullish > bearish) return 'bullish';
+  if (bearish > bullish) return 'bearish';
+  return 'neutral';
+}
+
+function assignBadges(article: { title: string; summary: string; category: string; subtopic: string; impactLevel: string; signalScore: number; publishedAt: string }): string[] {
+  const badges: string[] = [];
+  const text = `${article.title} ${article.summary}`.toLowerCase();
+  const ageHours = (Date.now() - new Date(article.publishedAt).getTime()) / (1000 * 60 * 60);
+
+  if (ageHours < 2 && article.signalScore >= 80) badges.push('Breaking');
+  if (article.impactLevel === 'high') badges.push('High Impact');
+  if (article.signalScore >= 70 && article.signalScore < 85 && !badges.includes('Breaking')) badges.push('Rising');
+  if (['macro', 'investment'].includes(article.category) && ['Central Bank', 'Macro Economy'].includes(article.subtopic)) badges.push('Macro');
+  if (article.subtopic === 'Earnings' || text.includes('earnings') || text.includes('revenue')) badges.push('Earnings');
+  if (['L1', 'L2', 'DeFi', 'DePIN'].includes(article.subtopic) || text.includes('on-chain') || text.includes('tvl')) badges.push('On-chain');
+
+  return [...new Set(badges)].slice(0, 3);
+}
+
+// ─── RSS Parsing ───
 
 function estimateReadTime(text: string): number {
   const words = text.split(/\s+/).length;
@@ -97,23 +221,9 @@ function hashString(str: string): string {
   return Math.abs(hash).toString(36);
 }
 
-function stripHtml(html: string): string {
-  return html
-    .replace(/<!\[CDATA\[(.*?)\]\]>/gs, '$1')
-    .replace(/<[^>]*>/g, '')
-    .replace(/&amp;/g, '&')
-    .replace(/&lt;/g, '<')
-    .replace(/&gt;/g, '>')
-    .replace(/&quot;/g, '"')
-    .replace(/&#039;/g, "'")
-    .replace(/&nbsp;/g, ' ')
-    .trim();
-}
-
 function parseItems(xml: string): Array<{ title: string; link: string; description: string; pubDate: string }> {
   const items: Array<{ title: string; link: string; description: string; pubDate: string }> = [];
 
-  // Try RSS <item> tags
   const itemRegex = /<item[\s>]([\s\S]*?)<\/item>/gi;
   let match;
   while ((match = itemRegex.exec(xml)) !== null) {
@@ -125,7 +235,6 @@ function parseItems(xml: string): Array<{ title: string; link: string; descripti
     if (title) items.push({ title, link, description, pubDate });
   }
 
-  // Try Atom <entry> tags if no items found
   if (items.length === 0) {
     const entryRegex = /<entry[\s>]([\s\S]*?)<\/entry>/gi;
     while ((match = entryRegex.exec(xml)) !== null) {
@@ -162,20 +271,31 @@ async function fetchFeed(feed: RSSFeed): Promise<NormalizedArticle[]> {
 
     return items.slice(0, 15).map(item => {
       const summary = item.description.slice(0, 300) + (item.description.length > 300 ? '…' : '');
+      const category = classifyCategory(item.title, summary, feed.category);
       const subtopic = classifySubtopic(item.title, summary, feed.subtopic || '');
+      const { level: impactLevel, score: signalScore } = scoreImpact(item.title, summary);
+      const marketDirection = inferDirection(item.title, summary);
+      const publishedAt = item.pubDate ? new Date(item.pubDate).toISOString() : new Date().toISOString();
 
-      return {
+      const article: NormalizedArticle = {
         id: `rss-${hashString(item.title + feed.source)}`,
         title: item.title,
         summary: summary || 'No summary available.',
         source: feed.source,
-        category: feed.category,
+        category,
         subtopic,
         url: item.link || '#',
-        publishedAt: item.pubDate ? new Date(item.pubDate).toISOString() : new Date().toISOString(),
+        publishedAt,
         readTime: estimateReadTime(item.description || item.title),
         isTopSignal: false,
+        impactLevel,
+        marketDirection,
+        badges: [],
+        signalScore,
       };
+
+      article.badges = assignBadges(article);
+      return article;
     });
   } catch (error) {
     console.error(`Error fetching ${feed.source}:`, error);
@@ -183,42 +303,38 @@ async function fetchFeed(feed: RSSFeed): Promise<NormalizedArticle[]> {
   }
 }
 
+// ─── Dedup & Ranking ───
+
 function deduplicateArticles(articles: NormalizedArticle[]): NormalizedArticle[] {
   const seen = new Map<string, NormalizedArticle>();
-
   for (const article of articles) {
-    // Normalize title for dedup
-    const key = article.title
-      .toLowerCase()
-      .replace(/[^a-z0-9]/g, '')
-      .slice(0, 60);
-
-    if (!seen.has(key)) {
+    const key = article.title.toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 60);
+    const existing = seen.get(key);
+    if (!existing || article.signalScore > existing.signalScore) {
       seen.set(key, article);
     }
   }
-
   return Array.from(seen.values());
 }
 
 function markTopSignals(articles: NormalizedArticle[]): NormalizedArticle[] {
-  // Sort by recency, pick top 4-5 across categories
-  const sorted = [...articles].sort(
-    (a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime()
-  );
-
-  const categories = new Set<string>();
+  // Top signals = highest signal score, diversity across categories
+  const sorted = [...articles].sort((a, b) => b.signalScore - a.signalScore);
+  const categories = new Map<string, number>();
   let signalCount = 0;
 
   return sorted.map(article => {
-    if (signalCount < 5 && !categories.has(article.category)) {
-      categories.add(article.category);
+    const catCount = categories.get(article.category) || 0;
+    if (signalCount < 6 && catCount < 2 && article.signalScore >= 60) {
+      categories.set(article.category, catCount + 1);
       signalCount++;
       return { ...article, isTopSignal: true };
     }
     return article;
   });
 }
+
+// ─── Main Handler ───
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -238,14 +354,16 @@ Deno.serve(async (req) => {
 
     console.log(`Fetched ${allArticles.length} total articles`);
 
-    // Deduplicate
     allArticles = deduplicateArticles(allArticles);
     console.log(`${allArticles.length} after dedup`);
 
-    // Sort by date
-    allArticles.sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime());
+    // Sort by signal score then recency
+    allArticles.sort((a, b) => {
+      const scoreDiff = b.signalScore - a.signalScore;
+      if (Math.abs(scoreDiff) > 10) return scoreDiff;
+      return new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime();
+    });
 
-    // Mark top signals
     allArticles = markTopSignals(allArticles);
 
     // Limit per category to ~15

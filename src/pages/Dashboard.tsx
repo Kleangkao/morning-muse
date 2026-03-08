@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { UserPreferences, TopicCategory, NewsItem, Narrative } from '@/lib/types';
 import { useNews } from '@/hooks/useNews';
-import { demoNarratives } from '@/lib/demo-data';
+
 import NewsCard from '@/components/NewsCard';
 import NarrativeCard from '@/components/NarrativeCard';
 import DashboardHeader from '@/components/DashboardHeader';
@@ -39,7 +39,7 @@ export default function Dashboard({ prefs, setPrefs, saved, read, onToggleSave, 
   const [search, setSearch] = useState('');
   const [showSearch, setShowSearch] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
-  const { articles: liveArticles, isLoading, lastUpdated, isLive, refresh } = useNews(prefs);
+  const { articles: liveArticles, narratives: liveNarratives, thaiSummaries, isLoading, lastUpdated, isLive, refresh } = useNews(prefs);
   const navigate = useNavigate();
 
   const articles = useMemo(() => {
@@ -66,7 +66,7 @@ export default function Dashboard({ prefs, setPrefs, saved, read, onToggleSave, 
   // Dashboard stats
   const unreadCount = articles.filter(a => !read.includes(a.id)).length;
   const highImpactCount = articles.filter(a => a.impactLevel === 'high').length;
-  const hottestNarrative = demoNarratives.find(n => n.momentum === 'Hot')?.title ?? '';
+  const hottestNarrative = liveNarratives.find(n => n.momentum === 'Hot')?.title ?? liveNarratives[0]?.title ?? '';
   const categoryCounts = articles.reduce<Record<string, number>>((acc, a) => {
     acc[a.category] = (acc[a.category] || 0) + 1;
     return acc;
@@ -154,7 +154,7 @@ export default function Dashboard({ prefs, setPrefs, saved, read, onToggleSave, 
           {/* Dashboard Stats */}
           <DashboardHeader
             articles={articles}
-            narratives={demoNarratives}
+            narratives={liveNarratives}
             newCount={unreadCount}
             highImpactCount={highImpactCount}
             hottestNarrative={hottestNarrative}
@@ -167,15 +167,15 @@ export default function Dashboard({ prefs, setPrefs, saved, read, onToggleSave, 
             <>
               {/* Top Signals */}
               {topSignals.length > 0 && (
-                <FeedSection title="⚡ Live Alpha Feed" items={topSignals} saved={saved} read={read} onToggleSave={onToggleSave} onToggleRead={onToggleRead} onMuteSource={onMuteSource} />
+                <FeedSection title="⚡ Live Alpha Feed" items={topSignals} saved={saved} read={read} onToggleSave={onToggleSave} onToggleRead={onToggleRead} onMuteSource={onMuteSource} thaiSummaries={thaiSummaries} />
               )}
 
               {/* Emerging Narratives */}
-              <NarrativeCard narratives={demoNarratives} />
+              <NarrativeCard narratives={liveNarratives} />
 
               {/* High Signal */}
               {highSignal.length > 0 && (
-                <FeedSection title="📡 High Signal" items={highSignal} saved={saved} read={read} onToggleSave={onToggleSave} onToggleRead={onToggleRead} onMuteSource={onMuteSource} />
+                <FeedSection title="📡 High Signal" items={highSignal} saved={saved} read={read} onToggleSave={onToggleSave} onToggleRead={onToggleRead} onMuteSource={onMuteSource} thaiSummaries={thaiSummaries} />
               )}
 
               {/* Category sections */}
@@ -183,7 +183,7 @@ export default function Dashboard({ prefs, setPrefs, saved, read, onToggleSave, 
                 const catItems = highSignal.concat(lowSignal).filter(a => a.category === cat);
                 if (catItems.length === 0) return null;
                 return (
-                  <FeedSection key={cat} title={categoryLabels[cat]} items={catItems.slice(0, 5)} saved={saved} read={read} onToggleSave={onToggleSave} onToggleRead={onToggleRead} onMuteSource={onMuteSource} />
+                  <FeedSection key={cat} title={categoryLabels[cat]} items={catItems.slice(0, 5)} saved={saved} read={read} onToggleSave={onToggleSave} onToggleRead={onToggleRead} onMuteSource={onMuteSource} thaiSummaries={thaiSummaries} />
                 );
               })}
 
@@ -202,7 +202,7 @@ export default function Dashboard({ prefs, setPrefs, saved, read, onToggleSave, 
           ) : (
             <div className="space-y-2">
               {signalArticles.map((item, i) => (
-                <NewsCard key={item.id} item={item} saved={saved.includes(item.id)} isRead={read.includes(item.id)} onToggleSave={onToggleSave} onToggleRead={onToggleRead} onMuteSource={onMuteSource} index={i} />
+                <NewsCard key={item.id} item={item} saved={saved.includes(item.id)} isRead={read.includes(item.id)} onToggleSave={onToggleSave} onToggleRead={onToggleRead} onMuteSource={onMuteSource} index={i} thaiSummary={thaiSummaries[item.id]} />
               ))}
             </div>
           )}
@@ -222,7 +222,7 @@ export default function Dashboard({ prefs, setPrefs, saved, read, onToggleSave, 
   );
 }
 
-function FeedSection({ title, items, saved, read, onToggleSave, onToggleRead, onMuteSource }: {
+function FeedSection({ title, items, saved, read, onToggleSave, onToggleRead, onMuteSource, thaiSummaries }: {
   title: string;
   items: NewsItem[];
   saved: string[];
@@ -230,13 +230,14 @@ function FeedSection({ title, items, saved, read, onToggleSave, onToggleRead, on
   onToggleSave: (id: string) => void;
   onToggleRead: (id: string) => void;
   onMuteSource: (source: string) => void;
+  thaiSummaries?: Record<string, string>;
 }) {
   return (
     <section>
       <h2 className="font-display text-xl mb-2">{title}</h2>
       <div className="space-y-2">
         {items.map((item, i) => (
-          <NewsCard key={item.id} item={item} saved={saved.includes(item.id)} isRead={read.includes(item.id)} onToggleSave={onToggleSave} onToggleRead={onToggleRead} onMuteSource={onMuteSource} index={i} />
+          <NewsCard key={item.id} item={item} saved={saved.includes(item.id)} isRead={read.includes(item.id)} onToggleSave={onToggleSave} onToggleRead={onToggleRead} onMuteSource={onMuteSource} index={i} thaiSummary={thaiSummaries?.[item.id]} />
         ))}
       </div>
     </section>
