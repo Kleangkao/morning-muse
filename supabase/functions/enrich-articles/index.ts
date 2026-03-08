@@ -103,8 +103,54 @@ async function handleQuickScan(body: any, apiKey: string) {
   }
 }
 
+// ─── Translate a batch of articles (max ~10) ───
+async function translateBatch(articles: ArticleSummary[], apiKey: string): Promise<{ thaiTitles: Record<string, string>; thaiSummaries: Record<string, string> }> {
+  const articleList = articles.map((a, i) =>
+    `[${i + 1}] ID:${a.id} | ${a.title} | ${a.summary}`
+  ).join('\n');
+
+  const ids = articles.map(a => a.id);
+
+  const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+    method: 'POST',
+    headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      model: 'google/gemini-2.5-flash',
+      messages: [
+        { role: 'system', content: `You translate financial news headlines and summaries into Thai. Return ONLY a JSON object. Use natural Thai financial terminology. Keep it concise.` },
+        { role: 'user', content: `Translate these ${articles.length} articles into Thai. Return JSON with exactly these keys:
+{
+  "thaiTitles": { "${ids[0]}": "Thai headline", ... },
+  "thaiSummaries": { "${ids[0]}": "Thai summary (1-2 sentences)", ... }
+}
+
+Articles:
+${articleList}` },
+      ],
+      response_format: { type: 'json_object' },
+    }),
+  });
+
+  if (!response.ok) {
+    console.error(`[Batch] AI error: ${response.status}`);
+    return { thaiTitles: {}, thaiSummaries: {} };
+  }
+
+  const data = await response.json();
+  const content = data.choices?.[0]?.message?.content;
+  try {
+    const parsed = JSON.parse(content);
+    return {
+      thaiTitles: parsed.thaiTitles || {},
+      thaiSummaries: parsed.thaiSummaries || {},
+    };
+  } catch (e) {
+    console.error('[Batch] Parse error:', e);
+    return { thaiTitles: {}, thaiSummaries: {} };
+  }
+}
+
 // ─── Default Enrichment Handler ───
-// Generates BOTH English and Thai versions for all articles
 async function handleEnrichment(body: any, apiKey: string) {
   const { articles } = body as { articles: ArticleSummary[] };
   if (!articles?.length) {
@@ -113,71 +159,67 @@ async function handleEnrichment(body: any, apiKey: string) {
     });
   }
 
-  // Process up to 50 articles for translation
   const topArticles = articles.slice(0, 50);
-  const articleList = topArticles.map((a, i) =>
-    `[${i + 1}] ID:${a.id} | ${a.category}/${a.subtopic} | ${a.title}\n   ${a.summary}`
-  ).join('\n\n');
 
-  const systemPrompt = `You are a financial intelligence analyst. You MUST translate ALL article headlines and summaries into Thai. This is your PRIMARY task.
-
-Return a JSON object with exactly this structure:
-{
-  "thaiTitles": { "article-id": "Thai headline", ... },
-  "thaiSummaries": { "article-id": "Thai summary", ... },
-  "narratives": [{ "title": "English title", "titleTh": "Thai title", "whyItMatters": "English", "whyItMattersTh": "Thai", "momentum": "Hot|Rising|Watchlist", "articleIds": ["id1"], "category": "ai|crypto|investment|macro|tech-stocks|commodities" }]
-}
-
-Rules:
-- thaiTitles MUST have an entry for EVERY article ID provided
-- thaiSummaries MUST have an entry for EVERY article ID provided  
-- Thai translations must be natural, not word-for-word
-- Use appropriate Thai financial terminology
-- Narratives: identify 2-5 emerging themes`;
-
-  const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
-    method: 'POST',
-    headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      model: 'google/gemini-2.5-flash',
-      messages: [
-        { role: 'system', content: systemPrompt },
-        { role: 'user', content: `Translate ALL of these articles into Thai. Return thaiTitles and thaiSummaries for EVERY article ID.\n\n${articleList}` },
-      ],
-      response_format: { type: 'json_object' },
-    }),
-  });
-
-  if (!response.ok) {
-    console.error('AI gateway error:', response.status);
-    return new Response(JSON.stringify({ thaiTitles: {}, thaiSummaries: {}, narratives: [] }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
+  // Split into batches of 10 to avoid JSON truncation
+  const BATCH_SIZE = 10;
+  const batches: ArticleSummary[][] = [];
+  for (let i = 0; i < topArticles.length; i += BATCH_SIZE) {
+    batches.push(topArticles.slice(i, i + BATCH_SIZE));
   }
 
-  const data = await response.json();
-  const content = data.choices?.[0]?.message?.content;
+  // Process all batches in parallel
+  const batchResults = await Promise.all(
+    batches.map(batch => translateBatch(batch, apiKey))
+  );
 
+  // Merge all batch results
+  const allThaiTitles: Record<string, string> = {};
+  const allThaiSummaries: Record<string, string> = {};
+  for (const result of batchResults) {
+    Object.assign(allThaiTitles, result.thaiTitles);
+    Object.assign(allThaiSummaries, result.thaiSummaries);
+  }
+
+  console.log(`[Enrichment] Generated ${Object.keys(allThaiTitles).length} Thai titles from ${batches.length} batches`);
+
+  // Generate narratives separately with top 20 articles
+  let narratives: any[] = [];
   try {
-    const parsed = JSON.parse(content);
-    const narratives = (parsed.narratives || []).map((n: any, i: number) => ({
-      ...n,
-      id: `nar-live-${i}`,
-      articleCount: n.articleIds?.length || 0,
-    }));
+    const narrativeArticles = topArticles.slice(0, 20);
+    const narrativeList = narrativeArticles.map((a, i) =>
+      `[${i + 1}] ${a.category}/${a.subtopic} | ${a.title}`
+    ).join('\n');
 
-    const thaiTitles = parsed.thaiTitles || {};
-    const thaiSummaries = parsed.thaiSummaries || {};
-    console.log(`[Enrichment] Generated ${Object.keys(thaiTitles).length} Thai titles, ${narratives.length} narratives`);
-
-    return new Response(
-      JSON.stringify({ thaiTitles, thaiSummaries, narratives }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
-  } catch (e) {
-    console.error('Parse error:', e);
-    return new Response(JSON.stringify({ thaiTitles: {}, thaiSummaries: {}, narratives: [] }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    const narrativeResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'google/gemini-2.5-flash',
+        messages: [
+          { role: 'system', content: 'Identify 2-5 emerging narrative themes from these financial news articles. Return JSON only.' },
+          { role: 'user', content: `Articles:\n${narrativeList}\n\nReturn JSON: { "narratives": [{ "title": "English title", "titleTh": "Thai title", "whyItMatters": "English explanation", "whyItMattersTh": "Thai explanation", "momentum": "Hot|Rising|Watchlist", "articleIds": ["id1"], "category": "ai|crypto|investment|macro|tech-stocks|commodities" }] }` },
+        ],
+        response_format: { type: 'json_object' },
+      }),
     });
+
+    if (narrativeResponse.ok) {
+      const narData = await narrativeResponse.json();
+      const narContent = narData.choices?.[0]?.message?.content;
+      const narParsed = JSON.parse(narContent);
+      narratives = (narParsed.narratives || []).map((n: any, i: number) => ({
+        ...n,
+        id: `nar-live-${i}`,
+        articleCount: n.articleIds?.length || 0,
+      }));
+    }
+  } catch (e) {
+    console.error('[Narratives] Error:', e);
   }
+
+  return new Response(
+    JSON.stringify({ thaiTitles: allThaiTitles, thaiSummaries: allThaiSummaries, narratives }),
+    { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+  );
 }
