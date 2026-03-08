@@ -598,7 +598,15 @@ function smartDeduplicate(articles: NormalizedArticle[]): NormalizedArticle[] {
       const sim = similarityScore(article.title, existing.title);
       const timeDiffHours = Math.abs(new Date(article.published_at).getTime() - new Date(existing.published_at).getTime()) / (1000 * 60 * 60);
 
-      // 3. Same source + similar title = duplicate (lower threshold)
+      // 3. Same source FAMILY + similar title = duplicate (lower threshold)
+      const sameFamily = getSourceFamily(article.source) === getSourceFamily(existing.source);
+      if (sameFamily && sim >= 0.25 && timeDiffHours < 24) {
+        existing.related_sources = [...new Set([...existing.related_sources, article.source])];
+        existing.related_count = existing.related_sources.length;
+        isDuplicate = true;
+        break;
+      }
+      // Same exact source still uses lower bar
       if (article.source === existing.source && sim >= 0.3 && timeDiffHours < 24) {
         isDuplicate = true;
         break;
@@ -705,6 +713,10 @@ const IRRELEVANT_PATTERNS: RegExp[] = [
   /\benshittification\b/i,
   // Robovac / smart home
   /\b(?:robovac|robot\s*vacuum|smart\s*home|thermostat)\b/i,
+  // Fan meetups, conventions, cosplay (lifestyle, not market-moving)
+  /\b(?:superfan|meetup|fan\s*fest|cosplay|convention)\b/i,
+  // Generic entertainment / media reviews
+  /\b(?:movie\s*review|album\s*review|book\s*review|tv\s*show|netflix|disney\+|streaming\s*review)\b/i,
 ];
 
 // Keywords that OVERRIDE the irrelevant filter (keep the article)
