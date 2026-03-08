@@ -70,7 +70,7 @@ export default function ArticleDetailModal({ item, open, onClose, lang, thaiTitl
   if (!item) return null;
 
   const displayTitle = showThai && thaiTitle ? thaiTitle : item.title;
-  const secondaryTitle = showThai && thaiTitle ? item.title : undefined;
+  const secondaryTitle = undefined; // No mixed language
 
   return (
     <Dialog open={open} onOpenChange={v => !v && onClose()}>
