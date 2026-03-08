@@ -186,13 +186,20 @@ export function useNews(prefs: UserPreferences) {
         }
       }
 
-      // Run enrichment if no cache
-      if (!loadEnrichmentCache() && mounted) {
+      // Check if enrichment cache has Thai translations for current articles
+      const cachedEnrichment = loadEnrichmentCache();
+      const currentArticleIds = (await supabase.from('articles').select('id').order('signal_score', { ascending: false }).limit(50)).data?.map((r: any) => r.id) || [];
+      
+      // Force re-enrichment if cache is missing Thai translations for top articles
+      const hasSufficientThaiTranslations = cachedEnrichment && 
+        currentArticleIds.slice(0, 10).filter((id: string) => cachedEnrichment.thaiTitles[id]).length >= 5;
+
+      if ((!cachedEnrichment || !hasSufficientThaiTranslations) && mounted) {
         const { data } = await supabase
           .from('articles')
           .select('*')
           .order('signal_score', { ascending: false })
-          .limit(20);
+          .limit(50);
         if (data?.length) {
           enrichArticles(data.map(mapDbRow));
         }
