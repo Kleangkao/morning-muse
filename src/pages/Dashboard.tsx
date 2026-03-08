@@ -9,6 +9,7 @@ import DashboardHeader from '@/components/DashboardHeader';
 import SettingsPanel from '@/components/SettingsPanel';
 import QuickScan from '@/components/QuickScan';
 import ArticleDetailModal from '@/components/ArticleDetailModal';
+import XSignalPlaceholder from '@/components/XSignalPlaceholder';
 import { Zap, Search, X, RefreshCw, Wifi, WifiOff, Settings, Bookmark } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
@@ -135,6 +136,9 @@ export default function Dashboard({ prefs, setPrefs, saved, read, onToggleSave, 
 
           {/* Quick Scan — first */}
           {activeFilter === 'all' && <QuickScan articles={articles} narratives={liveNarratives} lang={lang} />}
+
+          {/* X Signal placeholder */}
+          {activeFilter === 'all' && <XSignalPlaceholder lang={lang} />}
 
           {activeFilter === 'all' ? (
             <>
