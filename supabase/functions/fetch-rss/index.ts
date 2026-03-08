@@ -79,51 +79,51 @@ const RSS_FEEDS: RSSFeed[] = [
   { url: 'https://feeds.feedburner.com/zabornet', source: 'ZeroHedge', category: 'macro', subtopic: 'Macro Economy', tier: 3 },
   { url: 'https://www.mining.com/feed/', source: 'Mining.com', category: 'commodities', subtopic: 'Metals', tier: 3 },
 
-  // ═══ X / Twitter Signal Feeds — Curated Sources ═══
+  // ═══ X / Twitter Signal Feeds — Curated Nitter Sources ═══
   // AI
-  { url: 'https://rsshub.app/twitter/user/OpenAI', source: 'X @OpenAI', category: 'ai', subtopic: 'Companies', tier: 1 },
-  { url: 'https://rsshub.app/twitter/user/OpenAIDevs', source: 'X @OpenAIDevs', category: 'ai', subtopic: 'Models', tier: 2 },
-  { url: 'https://rsshub.app/twitter/user/sama', source: 'X @sama', category: 'ai', subtopic: 'Companies', tier: 1 },
-  { url: 'https://rsshub.app/twitter/user/AnthropicAI', source: 'X @AnthropicAI', category: 'ai', subtopic: 'Models', tier: 1 },
-  { url: 'https://rsshub.app/twitter/user/GoogleDeepMind', source: 'X @GoogleDeepMind', category: 'ai', subtopic: 'Research', tier: 1 },
-  { url: 'https://rsshub.app/twitter/user/ilyasut', source: 'X @ilyasut', category: 'ai', subtopic: 'Research', tier: 2 },
-  { url: 'https://rsshub.app/twitter/user/karpathy', source: 'X @karpathy', category: 'ai', subtopic: 'Research', tier: 1 },
-  { url: 'https://rsshub.app/twitter/user/TheAITimeline', source: 'X @TheAITimeline', category: 'ai', subtopic: 'Companies', tier: 2 },
-  { url: 'https://rsshub.app/twitter/user/perplexity_ai', source: 'X @perplexity_ai', category: 'ai', subtopic: 'Startups', tier: 2 },
-  { url: 'https://rsshub.app/twitter/user/stabilityai', source: 'X @stabilityai', category: 'ai', subtopic: 'Models', tier: 2 },
+  { url: 'https://nitter.net/OpenAI/rss', source: 'X @OpenAI', category: 'ai', subtopic: 'Companies', tier: 1 },
+  { url: 'https://nitter.net/OpenAIDevs/rss', source: 'X @OpenAIDevs', category: 'ai', subtopic: 'Models', tier: 2 },
+  { url: 'https://nitter.net/sama/rss', source: 'X @sama', category: 'ai', subtopic: 'Companies', tier: 1 },
+  { url: 'https://nitter.net/AnthropicAI/rss', source: 'X @AnthropicAI', category: 'ai', subtopic: 'Models', tier: 1 },
+  { url: 'https://nitter.net/GoogleDeepMind/rss', source: 'X @GoogleDeepMind', category: 'ai', subtopic: 'Research', tier: 1 },
+  { url: 'https://nitter.net/ilyasut/rss', source: 'X @ilyasut', category: 'ai', subtopic: 'Research', tier: 2 },
+  { url: 'https://nitter.net/karpathy/rss', source: 'X @karpathy', category: 'ai', subtopic: 'Research', tier: 1 },
+  { url: 'https://nitter.net/TheAITimeline/rss', source: 'X @TheAITimeline', category: 'ai', subtopic: 'Companies', tier: 2 },
+  { url: 'https://nitter.net/perplexity_ai/rss', source: 'X @perplexity_ai', category: 'ai', subtopic: 'Startups', tier: 2 },
+  { url: 'https://nitter.net/stabilityai/rss', source: 'X @stabilityai', category: 'ai', subtopic: 'Models', tier: 2 },
   // Crypto
-  { url: 'https://rsshub.app/twitter/user/CoinDesk', source: 'X @CoinDesk', category: 'crypto', subtopic: 'L1', tier: 1 },
-  { url: 'https://rsshub.app/twitter/user/Cointelegraph', source: 'X @Cointelegraph', category: 'crypto', subtopic: 'Altcoins', tier: 1 },
-  { url: 'https://rsshub.app/twitter/user/TheBlock__', source: 'X @TheBlock__', category: 'crypto', subtopic: 'DeFi', tier: 1 },
-  { url: 'https://rsshub.app/twitter/user/DecryptMedia', source: 'X @DecryptMedia', category: 'crypto', subtopic: 'L1', tier: 2 },
-  { url: 'https://rsshub.app/twitter/user/BitcoinMagazine', source: 'X @BitcoinMagazine', category: 'crypto', subtopic: 'L1', tier: 1 },
-  { url: 'https://rsshub.app/twitter/user/WuBlockchain', source: 'X @WuBlockchain', category: 'crypto', subtopic: 'Altcoins', tier: 2 },
-  { url: 'https://rsshub.app/twitter/user/DocumentingBTC', source: 'X @DocumentingBTC', category: 'crypto', subtopic: 'L1', tier: 2 },
-  { url: 'https://rsshub.app/twitter/user/glabornet', source: 'X @Glassnode', category: 'crypto', subtopic: 'L1', tier: 2 },
-  { url: 'https://rsshub.app/twitter/user/lookonchain', source: 'X @lookonchain', category: 'crypto', subtopic: 'DeFi', tier: 1 },
-  { url: 'https://rsshub.app/twitter/user/ArkhamIntel', source: 'X @ArkhamIntel', category: 'crypto', subtopic: 'L1', tier: 1 },
+  { url: 'https://nitter.net/CoinDesk/rss', source: 'X @CoinDesk', category: 'crypto', subtopic: 'L1', tier: 1 },
+  { url: 'https://nitter.net/Cointelegraph/rss', source: 'X @Cointelegraph', category: 'crypto', subtopic: 'Altcoins', tier: 1 },
+  { url: 'https://nitter.net/TheBlock__/rss', source: 'X @TheBlock__', category: 'crypto', subtopic: 'DeFi', tier: 1 },
+  { url: 'https://nitter.net/DecryptMedia/rss', source: 'X @DecryptMedia', category: 'crypto', subtopic: 'L1', tier: 2 },
+  { url: 'https://nitter.net/BitcoinMagazine/rss', source: 'X @BitcoinMagazine', category: 'crypto', subtopic: 'L1', tier: 1 },
+  { url: 'https://nitter.net/WuBlockchain/rss', source: 'X @WuBlockchain', category: 'crypto', subtopic: 'Altcoins', tier: 2 },
+  { url: 'https://nitter.net/DocumentingBTC/rss', source: 'X @DocumentingBTC', category: 'crypto', subtopic: 'L1', tier: 2 },
+  { url: 'https://nitter.net/glabornet/rss', source: 'X @Glassnode', category: 'crypto', subtopic: 'L1', tier: 2 },
+  { url: 'https://nitter.net/lookonchain/rss', source: 'X @lookonchain', category: 'crypto', subtopic: 'DeFi', tier: 1 },
+  { url: 'https://nitter.net/ArkhamIntel/rss', source: 'X @ArkhamIntel', category: 'crypto', subtopic: 'L1', tier: 1 },
   // Macro
-  { url: 'https://rsshub.app/twitter/user/KobeissiLetter', source: 'X @KobeissiLetter', category: 'macro', subtopic: 'Macro Economy', tier: 1 },
-  { url: 'https://rsshub.app/twitter/user/unusual_whales', source: 'X @unusual_whales', category: 'macro', subtopic: 'Market Movements', tier: 1 },
-  { url: 'https://rsshub.app/twitter/user/WatcherGuru', source: 'X @WatcherGuru', category: 'macro', subtopic: 'Market Movements', tier: 1 },
-  { url: 'https://rsshub.app/twitter/user/WalterBloomberg', source: 'X @WalterBloomberg', category: 'macro', subtopic: 'Market Movements', tier: 1 },
-  { url: 'https://rsshub.app/twitter/user/MacroAlf', source: 'X @MacroAlf', category: 'macro', subtopic: 'Macro Economy', tier: 2 },
-  { url: 'https://rsshub.app/twitter/user/LynAldenContact', source: 'X @LynAldenContact', category: 'macro', subtopic: 'Macro Economy', tier: 2 },
-  { url: 'https://rsshub.app/twitter/user/RaoulGMI', source: 'X @RaoulGMI', category: 'macro', subtopic: 'Macro Economy', tier: 2 },
-  { url: 'https://rsshub.app/twitter/user/LukeGromen', source: 'X @LukeGromen', category: 'macro', subtopic: 'Macro Economy', tier: 2 },
-  { url: 'https://rsshub.app/twitter/user/biancoresearch', source: 'X @biancoresearch', category: 'macro', subtopic: 'Macro Economy', tier: 2 },
-  { url: 'https://rsshub.app/twitter/user/TheMarketEar', source: 'X @TheMarketEar', category: 'macro', subtopic: 'Market Movements', tier: 2 },
+  { url: 'https://nitter.net/KobeissiLetter/rss', source: 'X @KobeissiLetter', category: 'macro', subtopic: 'Macro Economy', tier: 1 },
+  { url: 'https://nitter.net/unusual_whales/rss', source: 'X @unusual_whales', category: 'macro', subtopic: 'Market Movements', tier: 1 },
+  { url: 'https://nitter.net/WatcherGuru/rss', source: 'X @WatcherGuru', category: 'macro', subtopic: 'Market Movements', tier: 1 },
+  { url: 'https://nitter.net/WalterBloomberg/rss', source: 'X @WalterBloomberg', category: 'macro', subtopic: 'Market Movements', tier: 1 },
+  { url: 'https://nitter.net/MacroAlf/rss', source: 'X @MacroAlf', category: 'macro', subtopic: 'Macro Economy', tier: 2 },
+  { url: 'https://nitter.net/LynAldenContact/rss', source: 'X @LynAldenContact', category: 'macro', subtopic: 'Macro Economy', tier: 2 },
+  { url: 'https://nitter.net/RaoulGMI/rss', source: 'X @RaoulGMI', category: 'macro', subtopic: 'Macro Economy', tier: 2 },
+  { url: 'https://nitter.net/LukeGromen/rss', source: 'X @LukeGromen', category: 'macro', subtopic: 'Macro Economy', tier: 2 },
+  { url: 'https://nitter.net/biancoresearch/rss', source: 'X @biancoresearch', category: 'macro', subtopic: 'Macro Economy', tier: 2 },
+  { url: 'https://nitter.net/TheMarketEar/rss', source: 'X @TheMarketEar', category: 'macro', subtopic: 'Market Movements', tier: 2 },
   // Tech & Markets
-  { url: 'https://rsshub.app/twitter/user/TechCrunch', source: 'X @TechCrunch', category: 'tech-stocks', subtopic: 'Tech Stocks', tier: 1 },
-  { url: 'https://rsshub.app/twitter/user/verge', source: 'X @verge', category: 'tech-stocks', subtopic: 'Tech Stocks', tier: 2 },
-  { url: 'https://rsshub.app/twitter/user/ArsTechnica', source: 'X @ArsTechnica', category: 'tech-stocks', subtopic: 'Tech Stocks', tier: 2 },
-  { url: 'https://rsshub.app/twitter/user/CNBC', source: 'X @CNBC', category: 'investment', subtopic: 'Market Movements', tier: 1 },
-  { url: 'https://rsshub.app/twitter/user/ReutersBiz', source: 'X @ReutersBiz', category: 'investment', subtopic: 'Market Movements', tier: 1 },
-  { url: 'https://rsshub.app/twitter/user/BloombergTech', source: 'X @BloombergTech', category: 'tech-stocks', subtopic: 'Tech Stocks', tier: 1 },
-  { url: 'https://rsshub.app/twitter/user/StockMKTNewz', source: 'X @StockMKTNewz', category: 'investment', subtopic: 'Market Movements', tier: 2 },
-  { url: 'https://rsshub.app/twitter/user/DeItaone', source: 'X @DeItaone', category: 'investment', subtopic: 'Market Movements', tier: 1 },
-  { url: 'https://rsshub.app/twitter/user/business', source: 'X @business', category: 'investment', subtopic: 'Market Movements', tier: 1 },
-  { url: 'https://rsshub.app/twitter/user/WSJmarkets', source: 'X @WSJmarkets', category: 'investment', subtopic: 'Market Movements', tier: 1 },
+  { url: 'https://nitter.net/TechCrunch/rss', source: 'X @TechCrunch', category: 'tech-stocks', subtopic: 'Tech Stocks', tier: 1 },
+  { url: 'https://nitter.net/verge/rss', source: 'X @verge', category: 'tech-stocks', subtopic: 'Tech Stocks', tier: 2 },
+  { url: 'https://nitter.net/ArsTechnica/rss', source: 'X @ArsTechnica', category: 'tech-stocks', subtopic: 'Tech Stocks', tier: 2 },
+  { url: 'https://nitter.net/CNBC/rss', source: 'X @CNBC', category: 'investment', subtopic: 'Market Movements', tier: 1 },
+  { url: 'https://nitter.net/ReutersBiz/rss', source: 'X @ReutersBiz', category: 'investment', subtopic: 'Market Movements', tier: 1 },
+  { url: 'https://nitter.net/BloombergTech/rss', source: 'X @BloombergTech', category: 'tech-stocks', subtopic: 'Tech Stocks', tier: 1 },
+  { url: 'https://nitter.net/StockMKTNewz/rss', source: 'X @StockMKTNewz', category: 'investment', subtopic: 'Market Movements', tier: 2 },
+  { url: 'https://nitter.net/DeItaone/rss', source: 'X @DeItaone', category: 'investment', subtopic: 'Market Movements', tier: 1 },
+  { url: 'https://nitter.net/business/rss', source: 'X @business', category: 'investment', subtopic: 'Market Movements', tier: 1 },
+  { url: 'https://nitter.net/WSJmarkets/rss', source: 'X @WSJmarkets', category: 'investment', subtopic: 'Market Movements', tier: 1 },
 ];
 
 // ─── HTML Entity Decoding ───
@@ -347,19 +347,68 @@ function parseItems(xml: string): Array<{ title: string; link: string; descripti
   return items;
 }
 
-async function fetchFeed(feed: RSSFeed): Promise<NormalizedArticle[]> {
+// Nitter fallback instances for X feeds
+const NITTER_INSTANCES = [
+  'https://nitter.net',
+  'https://nitter.privacydev.net',
+  'https://nitter.poast.org',
+  'https://nitter.1d4.us',
+];
+
+async function fetchWithTimeout(url: string, timeoutMs: number): Promise<Response> {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), timeoutMs);
   try {
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 8000);
-    const response = await fetch(feed.url, {
+    const response = await fetch(url, {
       signal: controller.signal,
-      headers: { 'User-Agent': 'MorningFeed/1.0' },
+      headers: { 'User-Agent': 'Mozilla/5.0 (compatible; MorningFeed/1.0)' },
     });
     clearTimeout(timeout);
-    if (!response.ok) return [];
+    return response;
+  } catch (e) {
+    clearTimeout(timeout);
+    throw e;
+  }
+}
 
-    const xml = await response.text();
+async function fetchFeed(feed: RSSFeed): Promise<NormalizedArticle[]> {
+  try {
+    const isXFeed = feed.source.startsWith('X @');
+    let xml = '';
+
+    if (isXFeed) {
+      // Try multiple nitter instances for X feeds
+      const username = feed.url.replace(/^https:\/\/[^/]+\//, '').replace(/\/rss$/, '');
+      let fetched = false;
+      for (const instance of NITTER_INSTANCES) {
+        try {
+          const url = `${instance}/${username}/rss`;
+          const response = await fetchWithTimeout(url, 6000);
+          if (response.ok) {
+            xml = await response.text();
+            if (xml.includes('<item') || xml.includes('<entry')) {
+              fetched = true;
+              break;
+            }
+          }
+        } catch {
+          // Try next instance
+        }
+      }
+      if (!fetched) {
+        console.warn(`All nitter instances failed for ${feed.source}`);
+        return [];
+      }
+    } else {
+      const response = await fetchWithTimeout(feed.url, 8000);
+      if (!response.ok) return [];
+      xml = await response.text();
+    }
+
     const items = parseItems(xml);
+    if (isXFeed && items.length > 0) {
+      console.log(`✓ X feed ${feed.source}: ${items.length} posts`);
+    }
     const tierBonus = TIER_SCORE_BONUS[feed.tier] || 0;
 
     return items.slice(0, 15).map(item => {
@@ -371,6 +420,12 @@ async function fetchFeed(feed: RSSFeed): Promise<NormalizedArticle[]> {
       const published_at = item.pubDate ? new Date(item.pubDate).toISOString() : new Date().toISOString();
       const titleHash = makeTitleHash(item.title);
 
+      // For X feeds, convert nitter links back to twitter.com links
+      let articleUrl = item.link || '#';
+      if (isXFeed && articleUrl.includes('nitter')) {
+        articleUrl = articleUrl.replace(/https?:\/\/[^/]*nitter[^/]*/, 'https://x.com');
+      }
+
       const article: NormalizedArticle = {
         id: `rss-${hashString(item.title + feed.source)}`,
         title: item.title,
@@ -378,7 +433,7 @@ async function fetchFeed(feed: RSSFeed): Promise<NormalizedArticle[]> {
         source: feed.source,
         category,
         subtopic,
-        url: item.link || '#',
+        url: articleUrl,
         published_at,
         read_time: estimateReadTime(item.description || item.title),
         is_top_signal: false,
