@@ -45,7 +45,7 @@ export default function ArticleDetailModal({ item, open, onClose, lang, thaiTitl
     if (!open || !item) { setDetail(null); return; }
     setImgError(false);
 
-    // Try cache first
+    // Cache is keyed by both article ID and language
     const cacheKey = `article-detail-${item.id}-${lang}`;
     try {
       const cached = localStorage.getItem(cacheKey);
@@ -58,8 +58,9 @@ export default function ArticleDetailModal({ item, open, onClose, lang, thaiTitl
       }
     } catch {}
 
-    // Generate via AI
+    // Always generate AI summary — never show RSS text
     setLoading(true);
+    setDetail(null);
     generateDetail(item, lang).then(d => {
       setDetail(d);
       try { localStorage.setItem(cacheKey, JSON.stringify({ data: d, ts: Date.now() })); } catch {}
@@ -105,7 +106,7 @@ export default function ArticleDetailModal({ item, open, onClose, lang, thaiTitl
             <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">{item.source} · {item.readTime} min read</p>
           </DialogHeader>
 
-          {/* Summary paragraphs */}
+          {/* AI-generated summary paragraphs */}
           <div className="space-y-3">
             {loading ? (
               <div className="space-y-2">
@@ -115,18 +116,14 @@ export default function ArticleDetailModal({ item, open, onClose, lang, thaiTitl
               detail.paragraphs.map((p, i) => (
                 <p key={i} className="text-[14px] leading-relaxed text-foreground/90">{p}</p>
               ))
-            ) : (
-              <p className="text-[14px] leading-relaxed text-foreground/90">
-                {showThai && thaiSummary ? thaiSummary : item.summary}
-              </p>
-            )}
+            ) : null}
           </div>
 
-          {/* Key Takeaways */}
+          {/* Key Points */}
           {detail && detail.takeaways.length > 0 && (
             <div className="glass-card rounded-lg p-4 space-y-2">
               <h4 className="font-display text-sm font-semibold text-foreground">
-                {showThai ? '💡 ข้อมูลสำคัญ' : '💡 Key Takeaways'}
+                {showThai ? '💡 จุดสำคัญ' : '💡 Key Points'}
               </h4>
               <ul className="space-y-1.5">
                 {detail.takeaways.map((tk, i) => (
@@ -139,16 +136,19 @@ export default function ArticleDetailModal({ item, open, onClose, lang, thaiTitl
             </div>
           )}
 
-          {/* Source link */}
-          <a
-            href={item.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center justify-center gap-2 w-full rounded-lg bg-primary text-primary-foreground py-2.5 text-sm font-semibold transition-colors hover:bg-primary/90"
-          >
-            <ExternalLink className="h-4 w-4" />
-            {showThai ? 'อ่านต้นฉบับ' : 'Read Original'}
-          </a>
+          {/* Source + link */}
+          <div className="space-y-2 pt-1">
+            <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">{item.source}</p>
+            <a
+              href={item.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center justify-center gap-2 w-full rounded-lg bg-primary text-primary-foreground py-2.5 text-sm font-semibold transition-colors hover:bg-primary/90"
+            >
+              <ExternalLink className="h-4 w-4" />
+              {showThai ? 'เปิดบทความต้นฉบับ' : 'Open Original Article'}
+            </a>
+          </div>
         </div>
       </DialogContent>
     </Dialog>
@@ -157,7 +157,6 @@ export default function ArticleDetailModal({ item, open, onClose, lang, thaiTitl
 
 async function generateDetail(item: NewsItem, lang: Language): Promise<DetailData> {
   try {
-    const LOVABLE_API_KEY_ENV = import.meta.env.VITE_SUPABASE_PROJECT_ID;
     const { data, error } = await supabase.functions.invoke('enrich-articles', {
       body: {
         mode: 'detail',
@@ -168,10 +167,8 @@ async function generateDetail(item: NewsItem, lang: Language): Promise<DetailDat
     if (error || !data?.paragraphs) throw new Error('No detail');
     return { paragraphs: data.paragraphs, takeaways: data.takeaways || [] };
   } catch {
-    // Fallback: split existing summary
-    const summary = item.summary || '';
     return {
-      paragraphs: summary ? [summary] : ['No detailed summary available.'],
+      paragraphs: [item.summary || 'No summary available.'],
       takeaways: [],
     };
   }

@@ -78,6 +78,13 @@ const RSS_FEEDS: RSSFeed[] = [
   { url: 'https://thedefiant.io/feed', source: 'The Defiant', category: 'crypto', subtopic: 'DeFi', tier: 3 },
   { url: 'https://feeds.feedburner.com/zabornet', source: 'ZeroHedge', category: 'macro', subtopic: 'Macro Economy', tier: 3 },
   { url: 'https://www.mining.com/feed/', source: 'Mining.com', category: 'commodities', subtopic: 'Metals', tier: 3 },
+
+  // ═══ X / Twitter Signal Feeds (via RSS bridges) ═══
+  { url: 'https://rsshub.app/twitter/user/zabornet', source: 'X @zabornet', category: 'macro', subtopic: 'Macro Economy', tier: 3 },
+  { url: 'https://rsshub.app/twitter/user/DocumentingBTC', source: 'X @DocumentingBTC', category: 'crypto', subtopic: 'L1', tier: 3 },
+  { url: 'https://rsshub.app/twitter/user/WatcherGuru', source: 'X @WatcherGuru', category: 'crypto', subtopic: 'Altcoins', tier: 2 },
+  { url: 'https://rsshub.app/twitter/user/DeItaone', source: 'X @DeItaone', category: 'macro', subtopic: 'Market Movements', tier: 2 },
+  { url: 'https://rsshub.app/twitter/user/tier10k', source: 'X @tier10k', category: 'investment', subtopic: 'Market Movements', tier: 2 },
 ];
 
 // ─── HTML Entity Decoding ───
