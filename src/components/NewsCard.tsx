@@ -11,6 +11,7 @@ interface Props {
   onMuteSource?: (source: string) => void;
   index?: number;
   compact?: boolean;
+  thaiSummary?: string;
 }
 
 const categoryColors: Record<string, string> = {
@@ -38,7 +39,7 @@ const directionIcon = {
   neutral: <Minus className="h-3 w-3 text-muted-foreground" />,
 };
 
-export default function NewsCard({ item, saved, isRead, onToggleSave, onToggleRead, onMuteSource, index = 0, compact }: Props) {
+export default function NewsCard({ item, saved, isRead, onToggleSave, onToggleRead, onMuteSource, index = 0, compact, thaiSummary }: Props) {
   const timeAgo = getTimeAgo(item.publishedAt);
 
   return (
@@ -77,9 +78,16 @@ export default function NewsCard({ item, saved, isRead, onToggleSave, onToggleRe
 
         {/* Summary */}
         {!compact && (
-          <p className="text-[13px] leading-relaxed text-muted-foreground">
-            {item.summary}
-          </p>
+          <div className="space-y-1">
+            {thaiSummary && (
+              <p className="text-[13px] leading-relaxed text-foreground/80">
+                🇹🇭 {thaiSummary}
+              </p>
+            )}
+            <p className="text-[13px] leading-relaxed text-muted-foreground">
+              {item.summary}
+            </p>
+          </div>
         )}
 
         {/* Bottom row */}
