@@ -222,7 +222,7 @@ export default function Dashboard({ prefs, setPrefs, saved, read, onToggleSave, 
   );
 }
 
-function FeedSection({ title, items, saved, read, onToggleSave, onToggleRead, onMuteSource }: {
+function FeedSection({ title, items, saved, read, onToggleSave, onToggleRead, onMuteSource, thaiSummaries }: {
   title: string;
   items: NewsItem[];
   saved: string[];
@@ -230,13 +230,14 @@ function FeedSection({ title, items, saved, read, onToggleSave, onToggleRead, on
   onToggleSave: (id: string) => void;
   onToggleRead: (id: string) => void;
   onMuteSource: (source: string) => void;
+  thaiSummaries?: Record<string, string>;
 }) {
   return (
     <section>
       <h2 className="font-display text-xl mb-2">{title}</h2>
       <div className="space-y-2">
         {items.map((item, i) => (
-          <NewsCard key={item.id} item={item} saved={saved.includes(item.id)} isRead={read.includes(item.id)} onToggleSave={onToggleSave} onToggleRead={onToggleRead} onMuteSource={onMuteSource} index={i} />
+          <NewsCard key={item.id} item={item} saved={saved.includes(item.id)} isRead={read.includes(item.id)} onToggleSave={onToggleSave} onToggleRead={onToggleRead} onMuteSource={onMuteSource} index={i} thaiSummary={thaiSummaries?.[item.id]} />
         ))}
       </div>
     </section>
