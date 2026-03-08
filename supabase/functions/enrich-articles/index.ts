@@ -119,27 +119,21 @@ async function handleEnrichment(body: any, apiKey: string) {
     `[${i + 1}] ID:${a.id} | ${a.category}/${a.subtopic} | ${a.title}\n   ${a.summary}`
   ).join('\n\n');
 
-  const systemPrompt = `You are a financial intelligence analyst providing bilingual content.
+  const systemPrompt = `You are a financial intelligence analyst. You MUST translate ALL article headlines and summaries into Thai. This is your PRIMARY task.
 
-For each article, you must provide BOTH English and Thai versions:
-1. thaiTitles: Thai translation of each headline (concise, natural Thai)
-2. thaiSummaries: Thai translation of each summary (1-2 sentences, market-relevant)
+Return a JSON object with exactly this structure:
+{
+  "thaiTitles": { "article-id": "Thai headline", ... },
+  "thaiSummaries": { "article-id": "Thai summary", ... },
+  "narratives": [{ "title": "English title", "titleTh": "Thai title", "whyItMatters": "English", "whyItMattersTh": "Thai", "momentum": "Hot|Rising|Watchlist", "articleIds": ["id1"], "category": "ai|crypto|investment|macro|tech-stocks|commodities" }]
+}
 
-Additionally, identify 2-5 emerging narratives by grouping related articles. For each narrative:
-- title: Narrative title in English
-- titleTh: Narrative title in Thai
-- whyItMatters: English explanation (1-2 sentences)
-- whyItMattersTh: Thai explanation (1-2 sentences)
-- momentum: "Hot" if 3+ articles, "Rising" if 2+, "Watchlist" if emerging
-- category: primary category (ai, crypto, investment, macro, tech-stocks, commodities)
-- articleIds: array of article IDs in this narrative
-
-Translation quality is critical. Thai translations must be:
-- Natural Thai phrasing, not word-for-word translation
-- Appropriate financial terminology
-- Concise and readable
-
-You MUST use the provided tool to return structured output.`;
+Rules:
+- thaiTitles MUST have an entry for EVERY article ID provided
+- thaiSummaries MUST have an entry for EVERY article ID provided  
+- Thai translations must be natural, not word-for-word
+- Use appropriate Thai financial terminology
+- Narratives: identify 2-5 emerging themes`;
 
   const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
     method: 'POST',
@@ -148,48 +142,9 @@ You MUST use the provided tool to return structured output.`;
       model: 'google/gemini-2.5-flash',
       messages: [
         { role: 'system', content: systemPrompt },
-        { role: 'user', content: `Here are today's top articles:\n\n${articleList}` },
+        { role: 'user', content: `Translate ALL of these articles into Thai. Return thaiTitles and thaiSummaries for EVERY article ID.\n\n${articleList}` },
       ],
-      tools: [{
-        type: 'function',
-        function: {
-          name: 'return_bilingual_enrichment',
-          description: 'Return Thai translations and narratives with bilingual content',
-          parameters: {
-            type: 'object',
-            properties: {
-              thaiTitles: { 
-                type: 'object', 
-                additionalProperties: { type: 'string' },
-                description: 'Map of article ID to Thai headline translation'
-              },
-              thaiSummaries: { 
-                type: 'object', 
-                additionalProperties: { type: 'string' },
-                description: 'Map of article ID to Thai summary translation'
-              },
-              narratives: {
-                type: 'array',
-                items: {
-                  type: 'object',
-                  properties: {
-                    title: { type: 'string', description: 'English narrative title' },
-                    titleTh: { type: 'string', description: 'Thai narrative title' },
-                    whyItMatters: { type: 'string', description: 'English explanation' },
-                    whyItMattersTh: { type: 'string', description: 'Thai explanation' },
-                    momentum: { type: 'string', enum: ['Rising', 'Hot', 'Watchlist'] },
-                    articleIds: { type: 'array', items: { type: 'string' } },
-                    category: { type: 'string' },
-                  },
-                  required: ['title', 'titleTh', 'whyItMatters', 'whyItMattersTh', 'momentum', 'articleIds', 'category'],
-                },
-              },
-            },
-            required: ['thaiTitles', 'thaiSummaries', 'narratives'],
-          },
-        },
-      }],
-      tool_choice: { type: 'function', function: { name: 'return_bilingual_enrichment' } },
+      response_format: { type: 'json_object' },
     }),
   });
 
@@ -201,29 +156,28 @@ You MUST use the provided tool to return structured output.`;
   }
 
   const data = await response.json();
-  const toolCall = data.choices?.[0]?.message?.tool_calls?.[0];
+  const content = data.choices?.[0]?.message?.content;
 
-  if (!toolCall?.function?.arguments) {
+  try {
+    const parsed = JSON.parse(content);
+    const narratives = (parsed.narratives || []).map((n: any, i: number) => ({
+      ...n,
+      id: `nar-live-${i}`,
+      articleCount: n.articleIds?.length || 0,
+    }));
+
+    const thaiTitles = parsed.thaiTitles || {};
+    const thaiSummaries = parsed.thaiSummaries || {};
+    console.log(`[Enrichment] Generated ${Object.keys(thaiTitles).length} Thai titles, ${narratives.length} narratives`);
+
+    return new Response(
+      JSON.stringify({ thaiTitles, thaiSummaries, narratives }),
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    );
+  } catch (e) {
+    console.error('Parse error:', e);
     return new Response(JSON.stringify({ thaiTitles: {}, thaiSummaries: {}, narratives: [] }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   }
-
-  const parsed = JSON.parse(toolCall.function.arguments);
-  const narratives = (parsed.narratives || []).map((n: any, i: number) => ({
-    ...n,
-    id: `nar-live-${i}`,
-    articleCount: n.articleIds?.length || 0,
-  }));
-
-  console.log(`[Enrichment] Generated ${Object.keys(parsed.thaiTitles || {}).length} Thai titles, ${narratives.length} narratives`);
-
-  return new Response(
-    JSON.stringify({ 
-      thaiTitles: parsed.thaiTitles || {}, 
-      thaiSummaries: parsed.thaiSummaries || {}, 
-      narratives 
-    }),
-    { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-  );
 }
