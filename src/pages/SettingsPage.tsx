@@ -1,8 +1,7 @@
-import { UserPreferences, Interest, DEFAULT_INTERESTS, DEFAULT_SOURCES } from '@/lib/types';
+import { UserPreferences, TopicCategory, TOPIC_CONFIG, ALL_SOURCES } from '@/lib/types';
 import BottomNav from '@/components/BottomNav';
-import { Settings as SettingsIcon, Plus, X, RotateCcw } from 'lucide-react';
+import { Settings as SettingsIcon, Plus, X, RotateCcw, Volume2, VolumeX } from 'lucide-react';
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 
 interface Props {
   prefs: UserPreferences;
@@ -11,9 +10,8 @@ interface Props {
 
 export default function SettingsPage({ prefs, setPrefs }: Props) {
   const [keyword, setKeyword] = useState('');
-  const navigate = useNavigate();
 
-  const toggleInterest = (id: Interest) => {
+  const toggleInterest = (id: TopicCategory) => {
     setPrefs(p => ({
       ...p,
       interests: p.interests.includes(id) ? p.interests.filter(i => i !== id) : [...p.interests, id],
@@ -24,6 +22,13 @@ export default function SettingsPage({ prefs, setPrefs }: Props) {
     setPrefs(p => ({
       ...p,
       sources: p.sources.includes(s) ? p.sources.filter(x => x !== s) : [...p.sources, s],
+    }));
+  };
+
+  const toggleMutedSource = (s: string) => {
+    setPrefs(p => ({
+      ...p,
+      mutedSources: p.mutedSources.includes(s) ? p.mutedSources.filter(x => x !== s) : [...p.mutedSources, s],
     }));
   };
 
@@ -38,25 +43,26 @@ export default function SettingsPage({ prefs, setPrefs }: Props) {
   const resetOnboarding = () => {
     localStorage.removeItem('morning-feed-prefs');
     localStorage.removeItem('morning-feed-saved');
+    localStorage.removeItem('morning-feed-read');
     window.location.href = '/';
   };
 
   return (
     <div className="min-h-screen bg-background safe-bottom">
-      <header className="sticky top-0 z-40 bg-background/80 backdrop-blur-md border-b border-border/50 px-5 pt-5 pb-4">
+      <header className="sticky top-0 z-40 bg-background/90 backdrop-blur-md border-b border-border/50 px-5 pt-5 pb-4">
         <div className="flex items-center gap-2 mb-1">
           <SettingsIcon className="h-5 w-5 text-primary" />
-          <span className="text-sm font-semibold text-primary">Morning Feed</span>
+          <span className="text-sm font-bold text-primary">Morning Feed</span>
         </div>
         <h1 className="text-2xl font-display">Settings</h1>
       </header>
 
       <main className="px-5 py-6 space-y-8 max-w-lg mx-auto">
-        {/* Interests */}
+        {/* Topics */}
         <section>
-          <h2 className="text-lg font-display mb-3">Interests</h2>
+          <h2 className="text-lg font-display mb-3">Topics</h2>
           <div className="flex flex-wrap gap-2">
-            {DEFAULT_INTERESTS.map(({ id, label, emoji }) => {
+            {TOPIC_CONFIG.map(({ id, label, emoji }) => {
               const selected = prefs.interests.includes(id);
               return (
                 <button
@@ -100,11 +106,40 @@ export default function SettingsPage({ prefs, setPrefs }: Props) {
           </div>
         </section>
 
+        {/* Summary length */}
+        <section>
+          <h2 className="text-lg font-display mb-3">Summary length</h2>
+          <div className="flex gap-2">
+            {(['short', 'medium', 'long'] as const).map(len => (
+              <button
+                key={len}
+                onClick={() => setPrefs({ summaryLength: len })}
+                className={`flex-1 rounded-lg border-2 py-2 text-sm font-medium capitalize transition-all ${
+                  prefs.summaryLength === len ? 'border-primary bg-primary/10 text-foreground' : 'border-border text-muted-foreground'
+                }`}
+              >
+                {len}
+              </button>
+            ))}
+          </div>
+        </section>
+
+        {/* Morning time */}
+        <section>
+          <h2 className="text-lg font-display mb-3">Preferred update time</h2>
+          <input
+            type="time"
+            value={prefs.morningTime}
+            onChange={e => setPrefs({ morningTime: e.target.value })}
+            className="rounded-lg border border-input bg-background px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-ring"
+          />
+        </section>
+
         {/* Sources */}
         <section>
-          <h2 className="text-lg font-display mb-3">Sources</h2>
+          <h2 className="text-lg font-display mb-3">Preferred sources</h2>
           <div className="flex flex-wrap gap-2">
-            {DEFAULT_SOURCES.map(s => {
+            {ALL_SOURCES.map(s => {
               const selected = prefs.sources.includes(s);
               return (
                 <button
@@ -121,19 +156,31 @@ export default function SettingsPage({ prefs, setPrefs }: Props) {
           </div>
         </section>
 
-        {/* Morning time */}
+        {/* Muted sources */}
         <section>
-          <h2 className="text-lg font-display mb-3">Morning time</h2>
-          <input
-            type="time"
-            value={prefs.morningTime}
-            onChange={e => setPrefs({ morningTime: e.target.value })}
-            className="rounded-lg border border-input bg-background px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-ring"
-          />
+          <h2 className="text-lg font-display mb-3">Muted sources</h2>
+          <p className="text-sm text-muted-foreground mb-3">Articles from muted sources won't appear in your feed.</p>
+          <div className="space-y-2">
+            {ALL_SOURCES.map(s => {
+              const muted = prefs.mutedSources.includes(s);
+              return (
+                <button
+                  key={s}
+                  onClick={() => toggleMutedSource(s)}
+                  className={`flex w-full items-center justify-between rounded-lg border px-3 py-2.5 text-sm font-medium transition-all ${
+                    muted ? 'border-destructive/30 bg-destructive/5 text-destructive' : 'border-border text-foreground'
+                  }`}
+                >
+                  <span>{s}</span>
+                  {muted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4 text-muted-foreground" />}
+                </button>
+              );
+            })}
+          </div>
         </section>
 
         {/* Reset */}
-        <section>
+        <section className="pb-4">
           <button
             onClick={resetOnboarding}
             className="flex items-center gap-2 text-sm font-medium text-destructive"

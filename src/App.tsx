@@ -2,8 +2,8 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { usePreferences, useSavedArticles } from "@/hooks/usePreferences";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { usePreferences, useSavedArticles, useReadArticles } from "@/hooks/usePreferences";
 import Onboarding from "./pages/Onboarding";
 import Today from "./pages/Today";
 import Saved from "./pages/Saved";
@@ -14,7 +14,15 @@ const queryClient = new QueryClient();
 
 function AppRoutes() {
   const { prefs, setPrefs } = usePreferences();
-  const { saved, toggle } = useSavedArticles();
+  const { saved, toggle: toggleSave } = useSavedArticles();
+  const { read, toggleRead } = useReadArticles();
+
+  const handleMuteSource = (source: string) => {
+    setPrefs(p => ({
+      ...p,
+      mutedSources: p.mutedSources.includes(source) ? p.mutedSources : [...p.mutedSources, source],
+    }));
+  };
 
   if (!prefs.onboardingComplete) {
     return (
@@ -26,8 +34,8 @@ function AppRoutes() {
 
   return (
     <Routes>
-      <Route path="/" element={<Today prefs={prefs} saved={saved} onToggleSave={toggle} />} />
-      <Route path="/saved" element={<Saved saved={saved} onToggleSave={toggle} />} />
+      <Route path="/" element={<Today prefs={prefs} saved={saved} read={read} onToggleSave={toggleSave} onToggleRead={toggleRead} onMuteSource={handleMuteSource} />} />
+      <Route path="/saved" element={<Saved saved={saved} read={read} onToggleSave={toggleSave} onToggleRead={toggleRead} />} />
       <Route path="/settings" element={<SettingsPage prefs={prefs} setPrefs={setPrefs} />} />
       <Route path="*" element={<NotFound />} />
     </Routes>
