@@ -42,7 +42,7 @@ export default function Dashboard({ prefs, setPrefs, saved, read, onToggleSave, 
   const [search, setSearch] = useState('');
   const [showSearch, setShowSearch] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
-  const { articles: liveArticles, narratives: liveNarratives, thaiSummaries, isLoading, lastUpdated, isLive, refresh } = useNews(prefs);
+  const { articles: liveArticles, narratives: liveNarratives, thaiTitles, thaiSummaries, isLoading, lastUpdated, isLive, refresh } = useNews(prefs);
   const navigate = useNavigate();
   const tr = t(lang);
   const showThai = lang === 'th';
@@ -181,20 +181,20 @@ export default function Dashboard({ prefs, setPrefs, saved, read, onToggleSave, 
           {activeFilter === 'all' ? (
             <>
               {topSignals.length > 0 && (
-                <FeedSection title={tr.liveAlphaFeed} items={topSignals} saved={saved} read={read} onToggleSave={onToggleSave} onMarkRead={onMarkRead} onMuteSource={onMuteSource} thaiSummaries={thaiSummaries} showThai={showThai} />
+                <FeedSection title={tr.liveAlphaFeed} items={topSignals} saved={saved} read={read} onToggleSave={onToggleSave} onMarkRead={onMarkRead} onMuteSource={onMuteSource} thaiTitles={thaiTitles} thaiSummaries={thaiSummaries} showThai={showThai} />
               )}
 
               <NarrativeCard narratives={liveNarratives} lang={lang} />
 
               {highSignal.length > 0 && (
-                <FeedSection title={tr.highSignal} items={highSignal} saved={saved} read={read} onToggleSave={onToggleSave} onMarkRead={onMarkRead} onMuteSource={onMuteSource} thaiSummaries={thaiSummaries} showThai={showThai} />
+                <FeedSection title={tr.highSignal} items={highSignal} saved={saved} read={read} onToggleSave={onToggleSave} onMarkRead={onMarkRead} onMuteSource={onMuteSource} thaiTitles={thaiTitles} thaiSummaries={thaiSummaries} showThai={showThai} />
               )}
 
               {categoryOrder.map(cat => {
                 const catItems = highSignal.concat(lowSignal).filter(a => a.category === cat);
                 if (catItems.length === 0) return null;
-                return (
-                  <FeedSection key={cat} title={categoryLabels[cat]} items={catItems.slice(0, 5)} saved={saved} read={read} onToggleSave={onToggleSave} onMarkRead={onMarkRead} onMuteSource={onMuteSource} thaiSummaries={thaiSummaries} showThai={showThai} />
+                  return (
+                    <FeedSection key={cat} title={categoryLabels[cat]} items={catItems.slice(0, 5)} saved={saved} read={read} onToggleSave={onToggleSave} onMarkRead={onMarkRead} onMuteSource={onMuteSource} thaiTitles={thaiTitles} thaiSummaries={thaiSummaries} showThai={showThai} />
                 );
               })}
 
@@ -203,7 +203,7 @@ export default function Dashboard({ prefs, setPrefs, saved, read, onToggleSave, 
                   <h2 className="font-display text-lg mb-2 text-muted-foreground">{tr.lowerSignal}</h2>
                   <div className="space-y-2">
                     {lowSignal.map((item, i) => (
-                      <NewsCard key={item.id} item={item} saved={saved.includes(item.id)} isRead={read.includes(item.id)} onToggleSave={onToggleSave} onMarkRead={onMarkRead} onMuteSource={onMuteSource} index={i} compact showThai={showThai} thaiSummary={thaiSummaries[item.id]} />
+                      <NewsCard key={item.id} item={item} saved={saved.includes(item.id)} isRead={read.includes(item.id)} onToggleSave={onToggleSave} onMarkRead={onMarkRead} onMuteSource={onMuteSource} index={i} compact showThai={showThai} thaiTitle={thaiTitles[item.id]} thaiSummary={thaiSummaries[item.id]} />
                     ))}
                   </div>
                 </section>
@@ -212,7 +212,7 @@ export default function Dashboard({ prefs, setPrefs, saved, read, onToggleSave, 
           ) : (
             <div className="space-y-2">
               {signalArticles.map((item, i) => (
-                <NewsCard key={item.id} item={item} saved={saved.includes(item.id)} isRead={read.includes(item.id)} onToggleSave={onToggleSave} onMarkRead={onMarkRead} onMuteSource={onMuteSource} index={i} thaiSummary={thaiSummaries[item.id]} showThai={showThai} />
+                <NewsCard key={item.id} item={item} saved={saved.includes(item.id)} isRead={read.includes(item.id)} onToggleSave={onToggleSave} onMarkRead={onMarkRead} onMuteSource={onMuteSource} index={i} thaiTitle={thaiTitles[item.id]} thaiSummary={thaiSummaries[item.id]} showThai={showThai} />
               ))}
             </div>
           )}
@@ -231,7 +231,7 @@ export default function Dashboard({ prefs, setPrefs, saved, read, onToggleSave, 
   );
 }
 
-function FeedSection({ title, items, saved, read, onToggleSave, onMarkRead, onMuteSource, thaiSummaries, showThai }: {
+function FeedSection({ title, items, saved, read, onToggleSave, onMarkRead, onMuteSource, thaiTitles, thaiSummaries, showThai }: {
   title: string;
   items: NewsItem[];
   saved: string[];
@@ -239,6 +239,7 @@ function FeedSection({ title, items, saved, read, onToggleSave, onMarkRead, onMu
   onToggleSave: (id: string) => void;
   onMarkRead: (id: string) => void;
   onMuteSource: (source: string) => void;
+  thaiTitles?: Record<string, string>;
   thaiSummaries?: Record<string, string>;
   showThai?: boolean;
 }) {
@@ -247,7 +248,7 @@ function FeedSection({ title, items, saved, read, onToggleSave, onMarkRead, onMu
       <h2 className="font-display text-xl mb-2">{title}</h2>
       <div className="space-y-2">
         {items.map((item, i) => (
-          <NewsCard key={item.id} item={item} saved={saved.includes(item.id)} isRead={read.includes(item.id)} onToggleSave={onToggleSave} onMarkRead={onMarkRead} onMuteSource={onMuteSource} index={i} thaiSummary={thaiSummaries?.[item.id]} showThai={showThai} />
+          <NewsCard key={item.id} item={item} saved={saved.includes(item.id)} isRead={read.includes(item.id)} onToggleSave={onToggleSave} onMarkRead={onMarkRead} onMuteSource={onMuteSource} index={i} thaiTitle={thaiTitles?.[item.id]} thaiSummary={thaiSummaries?.[item.id]} showThai={showThai} />
         ))}
       </div>
     </section>

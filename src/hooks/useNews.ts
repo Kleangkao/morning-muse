@@ -3,12 +3,13 @@ import { NewsItem, Narrative, UserPreferences } from '@/lib/types';
 import { demoNews, demoNarratives } from '@/lib/demo-data';
 import { supabase } from '@/integrations/supabase/client';
 
-const ENRICHMENT_CACHE_KEY = 'morning-feed-enrichment';
+const ENRICHMENT_CACHE_KEY = 'morning-feed-enrichment-v2';
 const ENRICHMENT_CACHE_DURATION = 30 * 60 * 1000; // 30 min
 const UI_POLL_INTERVAL = 60 * 1000; // 1 minute
 const RSS_FETCH_INTERVAL = 5 * 60 * 1000; // 5 minutes
 
 interface EnrichmentCache {
+  thaiTitles: Record<string, string>;
   thaiSummaries: Record<string, string>;
   narratives: Narrative[];
   fetchedAt: string;
@@ -45,6 +46,7 @@ function mapDbRow(row: any): NewsItem {
     marketDirection: row.market_direction,
     badges: row.badges,
     signalScore: row.signal_score,
+    imageUrl: row.image_url || '',
   };
 }
 
@@ -53,6 +55,10 @@ export function useNews(prefs: UserPreferences) {
   const [narratives, setNarratives] = useState<Narrative[]>(() => {
     const cached = loadEnrichmentCache();
     return cached ? cached.narratives : demoNarratives;
+  });
+  const [thaiTitles, setThaiTitles] = useState<Record<string, string>>(() => {
+    const cached = loadEnrichmentCache();
+    return cached?.thaiTitles ?? {};
   });
   const [thaiSummaries, setThaiSummaries] = useState<Record<string, string>>(() => {
     const cached = loadEnrichmentCache();
@@ -118,6 +124,9 @@ export function useNews(prefs: UserPreferences) {
 
       if (error || !data) return;
 
+      if (data.thaiTitles && Object.keys(data.thaiTitles).length > 0) {
+        setThaiTitles(data.thaiTitles);
+      }
       if (data.thaiSummaries && Object.keys(data.thaiSummaries).length > 0) {
         setThaiSummaries(data.thaiSummaries);
       }
@@ -134,6 +143,7 @@ export function useNews(prefs: UserPreferences) {
         }));
         setNarratives(narrs);
         saveEnrichmentCache({
+          thaiTitles: data.thaiTitles || {},
           thaiSummaries: data.thaiSummaries || {},
           narratives: narrs,
           fetchedAt: new Date().toISOString(),
@@ -217,6 +227,7 @@ export function useNews(prefs: UserPreferences) {
   return {
     articles: filteredArticles,
     narratives,
+    thaiTitles,
     thaiSummaries,
     isLoading,
     lastUpdated,

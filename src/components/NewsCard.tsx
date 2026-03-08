@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { NewsItem, SmartBadge } from '@/lib/types';
 import { Bookmark, BookmarkCheck, Clock, VolumeX, TrendingUp, TrendingDown, Minus, ExternalLink } from 'lucide-react';
 import { motion } from 'framer-motion';
@@ -12,6 +12,7 @@ interface Props {
   onMuteSource?: (source: string) => void;
   index?: number;
   compact?: boolean;
+  thaiTitle?: string;
   thaiSummary?: string;
   showThai?: boolean;
 }
@@ -41,16 +42,15 @@ const directionIcon = {
   neutral: <Minus className="h-3 w-3 text-muted-foreground" />,
 };
 
-export default function NewsCard({ item, saved, isRead, onToggleSave, onMarkRead, onMuteSource, index = 0, compact, thaiSummary, showThai }: Props) {
+export default function NewsCard({ item, saved, isRead, onToggleSave, onMarkRead, onMuteSource, index = 0, compact, thaiTitle, thaiSummary, showThai }: Props) {
   const timeAgo = getTimeAgo(item.publishedAt);
   const ref = useRef<HTMLElement>(null);
+  const [imgError, setImgError] = useState(false);
 
-  // Auto-mark read on viewport visibility
   useEffect(() => {
     if (isRead) return;
     const el = ref.current;
     if (!el) return;
-
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
@@ -69,7 +69,10 @@ export default function NewsCard({ item, saved, isRead, onToggleSave, onMarkRead
     window.open(item.url, '_blank', 'noopener,noreferrer');
   };
 
+  const displayTitle = showThai && thaiTitle ? thaiTitle : item.title;
+  const secondaryTitle = showThai && thaiTitle ? item.title : undefined;
   const summaryText = showThai && thaiSummary ? thaiSummary : item.summary;
+  const hasImage = item.imageUrl && !imgError;
 
   return (
     <motion.article
@@ -80,6 +83,19 @@ export default function NewsCard({ item, saved, isRead, onToggleSave, onMarkRead
       onClick={handleCardClick}
       className={`glass-card rounded-lg overflow-hidden transition-all cursor-pointer hover:shadow-md hover:border-primary/20 ${isRead ? 'opacity-60' : ''}`}
     >
+      {/* Article image */}
+      {hasImage && !compact && (
+        <div className="w-full h-40 overflow-hidden bg-muted">
+          <img
+            src={item.imageUrl}
+            alt=""
+            className="w-full h-full object-cover"
+            onError={() => setImgError(true)}
+            loading="lazy"
+          />
+        </div>
+      )}
+
       <div className={`${compact ? 'p-3' : 'p-4'} space-y-2`}>
         {/* Badges row */}
         <div className="flex items-center gap-1.5 flex-wrap">
@@ -104,9 +120,16 @@ export default function NewsCard({ item, saved, isRead, onToggleSave, onMarkRead
 
         {/* Headline */}
         <h3 className={`font-display ${compact ? 'text-[15px]' : 'text-[17px]'} leading-snug font-medium text-foreground flex items-start gap-1.5`}>
-          <span className="flex-1">{item.title}</span>
+          <span className="flex-1">{displayTitle}</span>
           <ExternalLink className="h-3.5 w-3.5 shrink-0 mt-0.5 text-muted-foreground" />
         </h3>
+
+        {/* Secondary title (original when viewing Thai) */}
+        {secondaryTitle && !compact && (
+          <p className="text-[12px] text-muted-foreground/70 leading-snug -mt-1">
+            {secondaryTitle}
+          </p>
+        )}
 
         {/* Summary */}
         {!compact && (
@@ -115,9 +138,18 @@ export default function NewsCard({ item, saved, isRead, onToggleSave, onMarkRead
           </p>
         )}
 
-        {/* Bottom row */}
+        {/* Compact: small image thumbnail + source row */}
         <div className="flex items-center justify-between pt-0.5">
           <div className="flex items-center gap-2">
+            {compact && hasImage && (
+              <img
+                src={item.imageUrl}
+                alt=""
+                className="w-8 h-8 rounded object-cover"
+                onError={() => setImgError(true)}
+                loading="lazy"
+              />
+            )}
             <span className="text-[10px] font-semibold text-muted-foreground tracking-wide uppercase">
               {item.source} · {item.readTime}m
             </span>

@@ -25,6 +25,7 @@ export interface NewsItem {
   badges?: SmartBadge[];
   narrativeId?: string;
   signalScore?: number; // 0-100, higher = more signal
+  imageUrl?: string;
 }
 
 export interface Narrative {
