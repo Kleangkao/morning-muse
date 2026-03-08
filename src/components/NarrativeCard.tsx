@@ -1,9 +1,11 @@
 import { Narrative } from '@/lib/types';
 import { motion } from 'framer-motion';
 import { TrendingUp, Flame, Eye } from 'lucide-react';
+import { Language, t } from '@/hooks/useLanguage';
 
 interface Props {
   narratives: Narrative[];
+  lang: Language;
 }
 
 const momentumConfig = {
@@ -21,12 +23,13 @@ const categoryColors: Record<string, string> = {
   commodities: 'border-l-orange-500',
 };
 
-export default function NarrativeCard({ narratives }: Props) {
+export default function NarrativeCard({ narratives, lang }: Props) {
   if (!narratives.length) return null;
+  const tr = t(lang);
 
   return (
     <section>
-      <h2 className="font-display text-xl mb-3">🔥 Emerging Narratives</h2>
+      <h2 className="font-display text-xl mb-3">{tr.emergingNarratives}</h2>
       <div className="space-y-2">
         {narratives.map((n, i) => {
           const m = momentumConfig[n.momentum];
@@ -51,7 +54,7 @@ export default function NarrativeCard({ narratives }: Props) {
                   <p className="text-[12px] leading-relaxed text-muted-foreground">{n.whyItMatters}</p>
                   <div className="flex items-center gap-3 mt-1.5">
                     <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
-                      {n.articleCount} articles
+                      {n.articleCount} {tr.articles}
                     </span>
                     <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
                       {n.category}

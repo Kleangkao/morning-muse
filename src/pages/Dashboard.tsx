@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { UserPreferences, TopicCategory, NewsItem, Narrative } from '@/lib/types';
 import { useNews } from '@/hooks/useNews';
+import { Language, t } from '@/hooks/useLanguage';
 
 import NewsCard from '@/components/NewsCard';
 import NarrativeCard from '@/components/NarrativeCard';
@@ -15,8 +16,10 @@ interface Props {
   saved: string[];
   read: string[];
   onToggleSave: (id: string) => void;
-  onToggleRead: (id: string) => void;
+  onMarkRead: (id: string) => void;
   onMuteSource: (source: string) => void;
+  lang: Language;
+  setLang: (l: Language) => void;
 }
 
 const FILTER_TABS: { id: TopicCategory | 'all'; label: string }[] = [
@@ -29,18 +32,20 @@ const FILTER_TABS: { id: TopicCategory | 'all'; label: string }[] = [
   { id: 'commodities', label: '🪙 Commodities' },
 ];
 
-function formatLastUpdated(iso: string | null): string {
-  if (!iso) return 'Demo data';
+function formatLastUpdated(iso: string | null, lang: Language): string {
+  if (!iso) return t(lang).demoData;
   return new Date(iso).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 }
 
-export default function Dashboard({ prefs, setPrefs, saved, read, onToggleSave, onToggleRead, onMuteSource }: Props) {
+export default function Dashboard({ prefs, setPrefs, saved, read, onToggleSave, onMarkRead, onMuteSource, lang, setLang }: Props) {
   const [activeFilter, setActiveFilter] = useState<TopicCategory | 'all'>('all');
   const [search, setSearch] = useState('');
   const [showSearch, setShowSearch] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const { articles: liveArticles, narratives: liveNarratives, thaiSummaries, isLoading, lastUpdated, isLive, refresh } = useNews(prefs);
   const navigate = useNavigate();
+  const tr = t(lang);
+  const showThai = lang === 'th';
 
   const articles = useMemo(() => {
     return liveArticles.filter(n => {
@@ -53,17 +58,14 @@ export default function Dashboard({ prefs, setPrefs, saved, read, onToggleSave, 
     });
   }, [liveArticles, activeFilter, search]);
 
-  // Signal vs Noise: sort by signalScore desc, filter out low signal
   const signalArticles = useMemo(() => {
-    return [...articles]
-      .sort((a, b) => (b.signalScore ?? 50) - (a.signalScore ?? 50));
+    return [...articles].sort((a, b) => (b.signalScore ?? 50) - (a.signalScore ?? 50));
   }, [articles]);
 
   const topSignals = signalArticles.filter(a => a.isTopSignal).slice(0, 6);
   const highSignal = signalArticles.filter(a => (a.signalScore ?? 50) >= 65 && !a.isTopSignal);
   const lowSignal = signalArticles.filter(a => (a.signalScore ?? 50) < 65 && !a.isTopSignal);
 
-  // Dashboard stats
   const unreadCount = articles.filter(a => !read.includes(a.id)).length;
   const highImpactCount = articles.filter(a => a.impactLevel === 'high').length;
   const hottestNarrative = liveNarratives.find(n => n.momentum === 'Hot')?.title ?? liveNarratives[0]?.title ?? '';
@@ -73,18 +75,16 @@ export default function Dashboard({ prefs, setPrefs, saved, read, onToggleSave, 
   }, {});
   const strongestCategory = Object.entries(categoryCounts).sort((a, b) => b[1] - a[1])[0]?.[0] ?? '';
 
-  const today = new Date().toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+  const today = new Date().toLocaleDateString(lang === 'th' ? 'th-TH' : 'en-US', { weekday: 'short', month: 'short', day: 'numeric' });
 
-  // Category sections for "all" filter
-  const categoryOrder: TopicCategory[] = ['ai', 'crypto', 'investment', 'macro', 'tech-stocks', 'commodities'];
   const categoryLabels: Record<string, string> = {
     ai: '🤖 AI', crypto: '₿ Crypto', investment: '📈 Investment',
     macro: '🌍 Macro', 'tech-stocks': '💻 Tech Stocks', commodities: '🪙 Commodities',
   };
+  const categoryOrder: TopicCategory[] = ['ai', 'crypto', 'investment', 'macro', 'tech-stocks', 'commodities'];
 
   return (
     <div className="min-h-screen bg-background flex">
-      {/* Main content */}
       <div className="flex-1 min-w-0">
         {/* Header */}
         <header className="sticky top-0 z-40 bg-background/90 backdrop-blur-md border-b border-border/50">
@@ -96,6 +96,21 @@ export default function Dashboard({ prefs, setPrefs, saved, read, onToggleSave, 
                 {isLive ? <Wifi className="h-3 w-3 text-emerald-500" /> : <WifiOff className="h-3 w-3 text-muted-foreground" />}
               </div>
               <div className="flex items-center gap-1">
+                {/* Language toggle */}
+                <div className="flex items-center rounded-full bg-secondary p-0.5 mr-1">
+                  <button
+                    onClick={() => setLang('en')}
+                    className={`rounded-full px-2 py-0.5 text-[10px] font-bold transition-all ${lang === 'en' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground'}`}
+                  >
+                    EN
+                  </button>
+                  <button
+                    onClick={() => setLang('th')}
+                    className={`rounded-full px-2 py-0.5 text-[10px] font-bold transition-all ${lang === 'th' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground'}`}
+                  >
+                    TH
+                  </button>
+                </div>
                 <button onClick={refresh} disabled={isLoading} className="rounded-full p-2 hover:bg-secondary transition-colors" aria-label="Refresh">
                   <RefreshCw className={`h-4 w-4 text-muted-foreground ${isLoading ? 'animate-spin' : ''}`} />
                 </button>
@@ -111,7 +126,7 @@ export default function Dashboard({ prefs, setPrefs, saved, read, onToggleSave, 
               </div>
             </div>
             <p className="text-[11px] text-muted-foreground">
-              {today} · {unreadCount} unread · Updated {formatLastUpdated(lastUpdated)}
+              {today} · {unreadCount} {tr.unread} · {tr.updated} {formatLastUpdated(lastUpdated, lang)}
             </p>
 
             {showSearch && (
@@ -119,7 +134,7 @@ export default function Dashboard({ prefs, setPrefs, saved, read, onToggleSave, 
                 autoFocus
                 value={search}
                 onChange={e => setSearch(e.target.value)}
-                placeholder="Search headlines, sources, topics…"
+                placeholder={tr.searchPlaceholder}
                 className="mt-2 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-ring"
               />
             )}
@@ -137,7 +152,7 @@ export default function Dashboard({ prefs, setPrefs, saved, read, onToggleSave, 
                     : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
                 }`}
               >
-                {tab.label}
+                {tab.id === 'all' ? tr.allFilter : tab.label}
               </button>
             ))}
           </div>
@@ -147,11 +162,10 @@ export default function Dashboard({ prefs, setPrefs, saved, read, onToggleSave, 
           {isLoading && (
             <div className="text-center py-4">
               <RefreshCw className="h-5 w-5 text-primary animate-spin mx-auto mb-2" />
-              <p className="text-sm text-muted-foreground">Fetching intelligence…</p>
+              <p className="text-sm text-muted-foreground">{tr.fetchingIntelligence}</p>
             </div>
           )}
 
-          {/* Dashboard Stats */}
           <DashboardHeader
             articles={articles}
             narratives={liveNarratives}
@@ -161,39 +175,35 @@ export default function Dashboard({ prefs, setPrefs, saved, read, onToggleSave, 
             strongestCategory={categoryLabels[strongestCategory] || strongestCategory}
             lastUpdated={lastUpdated}
             isLive={isLive}
+            lang={lang}
           />
 
           {activeFilter === 'all' ? (
             <>
-              {/* Top Signals */}
               {topSignals.length > 0 && (
-                <FeedSection title="⚡ Live Alpha Feed" items={topSignals} saved={saved} read={read} onToggleSave={onToggleSave} onToggleRead={onToggleRead} onMuteSource={onMuteSource} thaiSummaries={thaiSummaries} />
+                <FeedSection title={tr.liveAlphaFeed} items={topSignals} saved={saved} read={read} onToggleSave={onToggleSave} onMarkRead={onMarkRead} onMuteSource={onMuteSource} thaiSummaries={thaiSummaries} showThai={showThai} />
               )}
 
-              {/* Emerging Narratives */}
-              <NarrativeCard narratives={liveNarratives} />
+              <NarrativeCard narratives={liveNarratives} lang={lang} />
 
-              {/* High Signal */}
               {highSignal.length > 0 && (
-                <FeedSection title="📡 High Signal" items={highSignal} saved={saved} read={read} onToggleSave={onToggleSave} onToggleRead={onToggleRead} onMuteSource={onMuteSource} thaiSummaries={thaiSummaries} />
+                <FeedSection title={tr.highSignal} items={highSignal} saved={saved} read={read} onToggleSave={onToggleSave} onMarkRead={onMarkRead} onMuteSource={onMuteSource} thaiSummaries={thaiSummaries} showThai={showThai} />
               )}
 
-              {/* Category sections */}
               {categoryOrder.map(cat => {
                 const catItems = highSignal.concat(lowSignal).filter(a => a.category === cat);
                 if (catItems.length === 0) return null;
                 return (
-                  <FeedSection key={cat} title={categoryLabels[cat]} items={catItems.slice(0, 5)} saved={saved} read={read} onToggleSave={onToggleSave} onToggleRead={onToggleRead} onMuteSource={onMuteSource} thaiSummaries={thaiSummaries} />
+                  <FeedSection key={cat} title={categoryLabels[cat]} items={catItems.slice(0, 5)} saved={saved} read={read} onToggleSave={onToggleSave} onMarkRead={onMarkRead} onMuteSource={onMuteSource} thaiSummaries={thaiSummaries} showThai={showThai} />
                 );
               })}
 
-              {/* Low Signal / Noise */}
               {lowSignal.length > 0 && (
                 <section>
-                  <h2 className="font-display text-lg mb-2 text-muted-foreground">📉 Lower Signal</h2>
+                  <h2 className="font-display text-lg mb-2 text-muted-foreground">{tr.lowerSignal}</h2>
                   <div className="space-y-2">
                     {lowSignal.map((item, i) => (
-                      <NewsCard key={item.id} item={item} saved={saved.includes(item.id)} isRead={read.includes(item.id)} onToggleSave={onToggleSave} onToggleRead={onToggleRead} onMuteSource={onMuteSource} index={i} compact />
+                      <NewsCard key={item.id} item={item} saved={saved.includes(item.id)} isRead={read.includes(item.id)} onToggleSave={onToggleSave} onMarkRead={onMarkRead} onMuteSource={onMuteSource} index={i} compact showThai={showThai} thaiSummary={thaiSummaries[item.id]} />
                     ))}
                   </div>
                 </section>
@@ -202,42 +212,42 @@ export default function Dashboard({ prefs, setPrefs, saved, read, onToggleSave, 
           ) : (
             <div className="space-y-2">
               {signalArticles.map((item, i) => (
-                <NewsCard key={item.id} item={item} saved={saved.includes(item.id)} isRead={read.includes(item.id)} onToggleSave={onToggleSave} onToggleRead={onToggleRead} onMuteSource={onMuteSource} index={i} thaiSummary={thaiSummaries[item.id]} />
+                <NewsCard key={item.id} item={item} saved={saved.includes(item.id)} isRead={read.includes(item.id)} onToggleSave={onToggleSave} onMarkRead={onMarkRead} onMuteSource={onMuteSource} index={i} thaiSummary={thaiSummaries[item.id]} showThai={showThai} />
               ))}
             </div>
           )}
 
           {articles.length === 0 && !isLoading && (
             <div className="text-center py-20 text-muted-foreground">
-              <p className="text-lg font-display">No results</p>
-              <p className="text-sm mt-1">{search ? 'Try a different search.' : 'Adjust your filters in Settings.'}</p>
+              <p className="text-lg font-display">{tr.noResults}</p>
+              <p className="text-sm mt-1">{search ? tr.tryDifferentSearch : tr.adjustFilters}</p>
             </div>
           )}
         </main>
       </div>
 
-      {/* Settings Panel */}
       <SettingsPanel prefs={prefs} setPrefs={setPrefs} open={settingsOpen} onClose={() => setSettingsOpen(false)} />
     </div>
   );
 }
 
-function FeedSection({ title, items, saved, read, onToggleSave, onToggleRead, onMuteSource, thaiSummaries }: {
+function FeedSection({ title, items, saved, read, onToggleSave, onMarkRead, onMuteSource, thaiSummaries, showThai }: {
   title: string;
   items: NewsItem[];
   saved: string[];
   read: string[];
   onToggleSave: (id: string) => void;
-  onToggleRead: (id: string) => void;
+  onMarkRead: (id: string) => void;
   onMuteSource: (source: string) => void;
   thaiSummaries?: Record<string, string>;
+  showThai?: boolean;
 }) {
   return (
     <section>
       <h2 className="font-display text-xl mb-2">{title}</h2>
       <div className="space-y-2">
         {items.map((item, i) => (
-          <NewsCard key={item.id} item={item} saved={saved.includes(item.id)} isRead={read.includes(item.id)} onToggleSave={onToggleSave} onToggleRead={onToggleRead} onMuteSource={onMuteSource} index={i} thaiSummary={thaiSummaries?.[item.id]} />
+          <NewsCard key={item.id} item={item} saved={saved.includes(item.id)} isRead={read.includes(item.id)} onToggleSave={onToggleSave} onMarkRead={onMarkRead} onMuteSource={onMuteSource} index={i} thaiSummary={thaiSummaries?.[item.id]} showThai={showThai} />
         ))}
       </div>
     </section>
