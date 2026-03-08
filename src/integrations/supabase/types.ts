@@ -20,6 +20,7 @@ export type Database = {
           category: string
           created_at: string
           id: string
+          image_url: string
           impact_level: string
           is_top_signal: boolean
           market_direction: string
@@ -40,6 +41,7 @@ export type Database = {
           category?: string
           created_at?: string
           id: string
+          image_url?: string
           impact_level?: string
           is_top_signal?: boolean
           market_direction?: string
@@ -60,6 +62,7 @@ export type Database = {
           category?: string
           created_at?: string
           id?: string
+          image_url?: string
           impact_level?: string
           is_top_signal?: boolean
           market_direction?: string
