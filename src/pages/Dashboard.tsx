@@ -231,7 +231,7 @@ export default function Dashboard({ prefs, setPrefs, saved, read, onToggleSave, 
   );
 }
 
-function FeedSection({ title, items, saved, read, onToggleSave, onMarkRead, onMuteSource, thaiSummaries, showThai }: {
+function FeedSection({ title, items, saved, read, onToggleSave, onMarkRead, onMuteSource, thaiTitles, thaiSummaries, showThai }: {
   title: string;
   items: NewsItem[];
   saved: string[];
@@ -239,6 +239,7 @@ function FeedSection({ title, items, saved, read, onToggleSave, onMarkRead, onMu
   onToggleSave: (id: string) => void;
   onMarkRead: (id: string) => void;
   onMuteSource: (source: string) => void;
+  thaiTitles?: Record<string, string>;
   thaiSummaries?: Record<string, string>;
   showThai?: boolean;
 }) {
@@ -247,7 +248,7 @@ function FeedSection({ title, items, saved, read, onToggleSave, onMarkRead, onMu
       <h2 className="font-display text-xl mb-2">{title}</h2>
       <div className="space-y-2">
         {items.map((item, i) => (
-          <NewsCard key={item.id} item={item} saved={saved.includes(item.id)} isRead={read.includes(item.id)} onToggleSave={onToggleSave} onMarkRead={onMarkRead} onMuteSource={onMuteSource} index={i} thaiSummary={thaiSummaries?.[item.id]} showThai={showThai} />
+          <NewsCard key={item.id} item={item} saved={saved.includes(item.id)} isRead={read.includes(item.id)} onToggleSave={onToggleSave} onMarkRead={onMarkRead} onMuteSource={onMuteSource} index={i} thaiTitle={thaiTitles?.[item.id]} thaiSummary={thaiSummaries?.[item.id]} showThai={showThai} />
         ))}
       </div>
     </section>
