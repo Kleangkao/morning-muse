@@ -39,7 +39,7 @@ export default function Dashboard({ prefs, setPrefs, saved, read, onToggleSave, 
   const [search, setSearch] = useState('');
   const [showSearch, setShowSearch] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
-  const { articles: liveArticles, isLoading, lastUpdated, isLive, refresh } = useNews(prefs);
+  const { articles: liveArticles, narratives: liveNarratives, thaiSummaries, isLoading, lastUpdated, isLive, refresh } = useNews(prefs);
   const navigate = useNavigate();
 
   const articles = useMemo(() => {
