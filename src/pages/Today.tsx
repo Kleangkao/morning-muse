@@ -1,9 +1,9 @@
 import { useMemo, useState } from 'react';
-import { demoNews } from '@/lib/demo-data';
 import { UserPreferences, TopicCategory } from '@/lib/types';
+import { useNews } from '@/hooks/useNews';
 import NewsCard from '@/components/NewsCard';
 import BottomNav from '@/components/BottomNav';
-import { Sun, Search, X } from 'lucide-react';
+import { Sun, Search, X, RefreshCw, Wifi, WifiOff } from 'lucide-react';
 
 interface Props {
   prefs: UserPreferences;
@@ -28,14 +28,20 @@ function getGreeting() {
   return 'Good evening';
 }
 
+function formatLastUpdated(iso: string | null): string {
+  if (!iso) return 'Demo data';
+  const d = new Date(iso);
+  return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+}
+
 export default function TodayPage({ prefs, saved, read, onToggleSave, onToggleRead, onMuteSource }: Props) {
   const [activeFilter, setActiveFilter] = useState<TopicCategory | 'all'>('all');
   const [search, setSearch] = useState('');
   const [showSearch, setShowSearch] = useState(false);
+  const { articles: liveArticles, isLoading, lastUpdated, isLive, refresh } = useNews(prefs);
 
   const articles = useMemo(() => {
-    return demoNews.filter(n => {
-      if (prefs.mutedSources.includes(n.source)) return false;
+    return liveArticles.filter(n => {
       if (activeFilter !== 'all' && n.category !== activeFilter && !n.isTopSignal) return false;
       if (search) {
         const q = search.toLowerCase();
@@ -43,7 +49,7 @@ export default function TodayPage({ prefs, saved, read, onToggleSave, onToggleRe
       }
       return true;
     });
-  }, [activeFilter, search, prefs.mutedSources]);
+  }, [liveArticles, activeFilter, search]);
 
   const topSignals = articles.filter(a => a.isTopSignal);
   const aiArticles = articles.filter(a => a.category === 'ai' && !a.isTopSignal);
@@ -65,13 +71,30 @@ export default function TodayPage({ prefs, saved, read, onToggleSave, onToggleRe
             <div className="flex items-center gap-2">
               <Sun className="h-5 w-5 text-primary" />
               <span className="text-sm font-bold text-primary tracking-wide">Morning Feed</span>
+              {isLive ? (
+                <Wifi className="h-3.5 w-3.5 text-green-500" />
+              ) : (
+                <WifiOff className="h-3.5 w-3.5 text-muted-foreground" />
+              )}
             </div>
-            <button onClick={() => setShowSearch(!showSearch)} className="rounded-full p-2 hover:bg-secondary transition-colors">
-              {showSearch ? <X className="h-5 w-5 text-foreground" /> : <Search className="h-5 w-5 text-muted-foreground" />}
-            </button>
+            <div className="flex items-center gap-1">
+              <button
+                onClick={refresh}
+                disabled={isLoading}
+                className="rounded-full p-2 hover:bg-secondary transition-colors"
+                aria-label="Refresh news"
+              >
+                <RefreshCw className={`h-4 w-4 text-muted-foreground ${isLoading ? 'animate-spin' : ''}`} />
+              </button>
+              <button onClick={() => setShowSearch(!showSearch)} className="rounded-full p-2 hover:bg-secondary transition-colors">
+                {showSearch ? <X className="h-5 w-5 text-foreground" /> : <Search className="h-5 w-5 text-muted-foreground" />}
+              </button>
+            </div>
           </div>
           <h1 className="text-2xl font-display">{getGreeting()}</h1>
-          <p className="text-sm text-muted-foreground">{today} · {unreadCount} unread</p>
+          <p className="text-sm text-muted-foreground">
+            {today} · {unreadCount} unread · Updated {formatLastUpdated(lastUpdated)}
+          </p>
 
           {/* Search */}
           {showSearch && (
@@ -104,6 +127,14 @@ export default function TodayPage({ prefs, saved, read, onToggleSave, onToggleRe
       </header>
 
       <main className="px-4 py-4 max-w-lg mx-auto space-y-6">
+        {/* Loading indicator */}
+        {isLoading && (
+          <div className="text-center py-4">
+            <RefreshCw className="h-5 w-5 text-primary animate-spin mx-auto mb-2" />
+            <p className="text-sm text-muted-foreground">Fetching latest news…</p>
+          </div>
+        )}
+
         {showSections ? (
           <>
             {topSignals.length > 0 && (
@@ -127,7 +158,7 @@ export default function TodayPage({ prefs, saved, read, onToggleSave, onToggleRe
           </div>
         )}
 
-        {articles.length === 0 && (
+        {articles.length === 0 && !isLoading && (
           <div className="text-center py-20 text-muted-foreground">
             <p className="text-lg font-display">No results</p>
             <p className="text-sm mt-1">{search ? 'Try a different search.' : 'Adjust your filters or unmute sources in Settings.'}</p>
