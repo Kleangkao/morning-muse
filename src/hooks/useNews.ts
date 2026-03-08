@@ -144,6 +144,7 @@ export function useNews(prefs: UserPreferences) {
       const narrs: Narrative[] = (data.narratives || []).map((n: any) => ({
         id: n.id,
         title: n.title,
+        titleTh: n.titleTh || n.title,
         whyItMatters: n.whyItMatters,
         whyItMattersTh: n.whyItMattersTh || n.whyItMatters,
         articleCount: n.articleCount || n.articleIds?.length || 0,
