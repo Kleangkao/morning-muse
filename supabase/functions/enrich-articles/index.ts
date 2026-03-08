@@ -104,6 +104,7 @@ async function handleQuickScan(body: any, apiKey: string) {
 }
 
 // ─── Default Enrichment Handler ───
+// Generates BOTH English and Thai versions for all articles
 async function handleEnrichment(body: any, apiKey: string) {
   const { articles } = body as { articles: ArticleSummary[] };
   if (!articles?.length) {
@@ -112,23 +113,31 @@ async function handleEnrichment(body: any, apiKey: string) {
     });
   }
 
-  // Translate up to 50 articles for better Thai coverage
+  // Process up to 50 articles for translation
   const topArticles = articles.slice(0, 50);
   const articleList = topArticles.map((a, i) =>
     `[${i + 1}] ID:${a.id} | ${a.category}/${a.subtopic} | ${a.title}\n   ${a.summary}`
   ).join('\n\n');
 
-  const systemPrompt = `You are a financial intelligence analyst. You will receive a list of news articles.
+  const systemPrompt = `You are a financial intelligence analyst providing bilingual content.
 
-Your tasks:
-1. For each article, translate the headline into Thai. Keep it natural and concise.
-2. For each article, write a 1-2 sentence Thai summary focused on market relevance.
-3. Identify 2-5 emerging narratives by grouping related articles. For each narrative provide:
-   - A compelling title (in English)
-   - "whyItMatters": explanation in English (1-2 sentences, why this pattern matters for markets/investors)
-   - "whyItMattersTh": the same explanation in Thai
-   - momentum: "Hot" if 3+ articles and very current, "Rising" if 2+ articles, "Watchlist" if emerging
-   - category: the primary category this narrative belongs to (ai, crypto, investment, macro, tech-stocks, commodities)
+For each article, you must provide BOTH English and Thai versions:
+1. thaiTitles: Thai translation of each headline (concise, natural Thai)
+2. thaiSummaries: Thai translation of each summary (1-2 sentences, market-relevant)
+
+Additionally, identify 2-5 emerging narratives by grouping related articles. For each narrative:
+- title: Narrative title in English
+- titleTh: Narrative title in Thai
+- whyItMatters: English explanation (1-2 sentences)
+- whyItMattersTh: Thai explanation (1-2 sentences)
+- momentum: "Hot" if 3+ articles, "Rising" if 2+, "Watchlist" if emerging
+- category: primary category (ai, crypto, investment, macro, tech-stocks, commodities)
+- articleIds: array of article IDs in this narrative
+
+Translation quality is critical. Thai translations must be:
+- Natural Thai phrasing, not word-for-word translation
+- Appropriate financial terminology
+- Concise and readable
 
 You MUST use the provided tool to return structured output.`;
 
@@ -144,26 +153,35 @@ You MUST use the provided tool to return structured output.`;
       tools: [{
         type: 'function',
         function: {
-          name: 'return_enrichment',
-          description: 'Return Thai titles, Thai summaries, and detected narratives with both English and Thai explanations',
+          name: 'return_bilingual_enrichment',
+          description: 'Return Thai translations and narratives with bilingual content',
           parameters: {
             type: 'object',
             properties: {
-              thaiTitles: { type: 'object', additionalProperties: { type: 'string' } },
-              thaiSummaries: { type: 'object', additionalProperties: { type: 'string' } },
+              thaiTitles: { 
+                type: 'object', 
+                additionalProperties: { type: 'string' },
+                description: 'Map of article ID to Thai headline translation'
+              },
+              thaiSummaries: { 
+                type: 'object', 
+                additionalProperties: { type: 'string' },
+                description: 'Map of article ID to Thai summary translation'
+              },
               narratives: {
                 type: 'array',
                 items: {
                   type: 'object',
                   properties: {
-                    title: { type: 'string' },
+                    title: { type: 'string', description: 'English narrative title' },
+                    titleTh: { type: 'string', description: 'Thai narrative title' },
                     whyItMatters: { type: 'string', description: 'English explanation' },
                     whyItMattersTh: { type: 'string', description: 'Thai explanation' },
                     momentum: { type: 'string', enum: ['Rising', 'Hot', 'Watchlist'] },
                     articleIds: { type: 'array', items: { type: 'string' } },
                     category: { type: 'string' },
                   },
-                  required: ['title', 'whyItMatters', 'whyItMattersTh', 'momentum', 'articleIds', 'category'],
+                  required: ['title', 'titleTh', 'whyItMatters', 'whyItMattersTh', 'momentum', 'articleIds', 'category'],
                 },
               },
             },
@@ -171,7 +189,7 @@ You MUST use the provided tool to return structured output.`;
           },
         },
       }],
-      tool_choice: { type: 'function', function: { name: 'return_enrichment' } },
+      tool_choice: { type: 'function', function: { name: 'return_bilingual_enrichment' } },
     }),
   });
 
@@ -198,8 +216,14 @@ You MUST use the provided tool to return structured output.`;
     articleCount: n.articleIds?.length || 0,
   }));
 
+  console.log(`[Enrichment] Generated ${Object.keys(parsed.thaiTitles || {}).length} Thai titles, ${narratives.length} narratives`);
+
   return new Response(
-    JSON.stringify({ thaiTitles: parsed.thaiTitles || {}, thaiSummaries: parsed.thaiSummaries || {}, narratives }),
+    JSON.stringify({ 
+      thaiTitles: parsed.thaiTitles || {}, 
+      thaiSummaries: parsed.thaiSummaries || {}, 
+      narratives 
+    }),
     { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
   );
 }
