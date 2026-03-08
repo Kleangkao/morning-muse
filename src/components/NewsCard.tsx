@@ -74,10 +74,11 @@ export default function NewsCard({ item, saved, isRead, onToggleSave, onMarkRead
     }
   };
 
-  // Strict language: EN = English only, TH = Thai only (fallback to English if no translation)
+  // Strict language: EN = English only, TH = Thai only (fallback to English title if no translation yet)
   const displayTitle = showThai && thaiTitle ? thaiTitle : item.title;
   const secondaryTitle = undefined; // Never show mixed-language secondary title
-  const summaryText = showThai && thaiSummary ? thaiSummary : (showThai ? '' : item.summary);
+  // For summary: show Thai if available, otherwise show English (don't hide content)
+  const summaryText = showThai ? (thaiSummary || item.summary) : item.summary;
   const hasImage = item.imageUrl && !imgError;
 
   // Determine if this is an X/Twitter source

@@ -112,7 +112,8 @@ async function handleEnrichment(body: any, apiKey: string) {
     });
   }
 
-  const topArticles = articles.slice(0, 20);
+  // Translate up to 50 articles for better Thai coverage
+  const topArticles = articles.slice(0, 50);
   const articleList = topArticles.map((a, i) =>
     `[${i + 1}] ID:${a.id} | ${a.category}/${a.subtopic} | ${a.title}\n   ${a.summary}`
   ).join('\n\n');
