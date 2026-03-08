@@ -15,7 +15,7 @@ interface Props {
 
 export default function SavedPage({ saved, read, onToggleSave, onMarkRead, lang }: Props) {
   const { prefs } = usePreferences();
-  const { articles, thaiSummaries } = useNews(prefs);
+  const { articles, thaiTitles, thaiSummaries } = useNews(prefs);
   const navigate = useNavigate();
   const items = articles.filter(n => saved.includes(n.id));
   const tr = t(lang);
@@ -40,7 +40,7 @@ export default function SavedPage({ saved, read, onToggleSave, onMarkRead, lang 
 
       <main className="px-4 py-4 space-y-2 max-w-2xl mx-auto">
         {items.map((item, i) => (
-          <NewsCard key={item.id} item={item} saved={true} isRead={read.includes(item.id)} onToggleSave={onToggleSave} onMarkRead={onMarkRead} index={i} showThai={showThai} thaiSummary={thaiSummaries[item.id]} />
+          <NewsCard key={item.id} item={item} saved={true} isRead={read.includes(item.id)} onToggleSave={onToggleSave} onMarkRead={onMarkRead} index={i} showThai={showThai} thaiTitle={thaiTitles[item.id]} thaiSummary={thaiSummaries[item.id]} />
         ))}
         {items.length === 0 && (
           <div className="text-center py-20 text-muted-foreground">
