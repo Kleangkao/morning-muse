@@ -527,13 +527,30 @@ function extractEntities(title: string): string[] {
 const AGGRESSIVE_DEDUP_CATEGORIES = new Set(['macro', 'commodities', 'investment']);
 const AGGRESSIVE_DEDUP_KEYWORDS = [
   'etf', 'oil', 'gold', 'crude', 'bitcoin etf', 'regulation', 'fed', 'interest rate',
-  'inflation', 'tariff', 'sanctions', 'stablecoin', 'cbdc', 'sec ',
+  'inflation', 'tariff', 'sanctions', 'stablecoin', 'cbdc', 'sec ', 'iran', 'war',
+  'middle east', 'barrel', 'opec', 'aramco',
 ];
 
 function isAggressiveDedupCandidate(article: NormalizedArticle): boolean {
   if (AGGRESSIVE_DEDUP_CATEGORIES.has(article.category)) return true;
   const text = `${article.title} ${article.summary}`.toLowerCase();
   return AGGRESSIVE_DEDUP_KEYWORDS.some(k => text.includes(k));
+}
+
+// ─── Source Family Grouping ───
+// Treat sub-feeds from same publisher as same source for dedup
+function getSourceFamily(source: string): string {
+  if (source.startsWith('Investing.com')) return 'Investing.com';
+  if (source.startsWith('CNBC')) return 'CNBC';
+  if (source.startsWith('Reuters')) return 'Reuters';
+  if (source.startsWith('MarketWatch')) return 'MarketWatch';
+  if (source.startsWith('CoinDesk') || source === 'X @CoinDesk') return 'CoinDesk';
+  if (source.startsWith('CoinTelegraph') || source === 'X @Cointelegraph') return 'CoinTelegraph';
+  if (source.startsWith('The Verge') || source === 'X @verge') return 'The Verge';
+  if (source.startsWith('TechCrunch') || source === 'X @TechCrunch') return 'TechCrunch';
+  if (source.startsWith('Ars Technica') || source === 'X @ArsTechnica') return 'Ars Technica';
+  if (source.startsWith('BBC')) return 'BBC';
+  return source;
 }
 
 function similarityScore(a: string, b: string): number {
@@ -581,7 +598,15 @@ function smartDeduplicate(articles: NormalizedArticle[]): NormalizedArticle[] {
       const sim = similarityScore(article.title, existing.title);
       const timeDiffHours = Math.abs(new Date(article.published_at).getTime() - new Date(existing.published_at).getTime()) / (1000 * 60 * 60);
 
-      // 3. Same source + similar title = duplicate (lower threshold)
+      // 3. Same source FAMILY + similar title = duplicate (lower threshold)
+      const sameFamily = getSourceFamily(article.source) === getSourceFamily(existing.source);
+      if (sameFamily && sim >= 0.25 && timeDiffHours < 24) {
+        existing.related_sources = [...new Set([...existing.related_sources, article.source])];
+        existing.related_count = existing.related_sources.length;
+        isDuplicate = true;
+        break;
+      }
+      // Same exact source still uses lower bar
       if (article.source === existing.source && sim >= 0.3 && timeDiffHours < 24) {
         isDuplicate = true;
         break;
@@ -688,6 +713,10 @@ const IRRELEVANT_PATTERNS: RegExp[] = [
   /\benshittification\b/i,
   // Robovac / smart home
   /\b(?:robovac|robot\s*vacuum|smart\s*home|thermostat)\b/i,
+  // Fan meetups, conventions, cosplay (lifestyle, not market-moving)
+  /\b(?:superfan|meetup|fan\s*fest|cosplay|convention)\b/i,
+  // Generic entertainment / media reviews
+  /\b(?:movie\s*review|album\s*review|book\s*review|tv\s*show|netflix|disney\+|streaming\s*review)\b/i,
 ];
 
 // Keywords that OVERRIDE the irrelevant filter (keep the article)
@@ -794,8 +823,17 @@ Deno.serve(async (req) => {
       .from('articles')
       .delete()
       .lt('published_at', cutoff);
-
     if (deleteError) console.error('Cleanup error:', deleteError);
+
+    // Clean irrelevant articles that may have been stored before filters were added
+    const { data: allStored } = await supabase.from('articles').select('id, title, summary');
+    if (allStored?.length) {
+      const toDelete = allStored.filter(a => isIrrelevantContent(a.title, a.summary)).map(a => a.id);
+      if (toDelete.length > 0) {
+        await supabase.from('articles').delete().in('id', toDelete);
+        console.log(`Cleaned ${toDelete.length} irrelevant articles from DB`);
+      }
+    }
 
     return new Response(
       JSON.stringify({
