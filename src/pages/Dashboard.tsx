@@ -62,7 +62,11 @@ export default function Dashboard({ prefs, setPrefs, saved, read, onToggleSave, 
     });
   }, [liveArticles, activeFilter, search]);
 
-  const signalArticles = useMemo(() => [...articles].sort((a, b) => (b.signalScore ?? 50) - (a.signalScore ?? 50)), [articles]);
+  // Separate X signal articles from regular articles
+  const xArticles = useMemo(() => articles.filter(a => a.source.toLowerCase().startsWith('x @') || a.source.toLowerCase() === 'x'), [articles]);
+  const regularArticles = useMemo(() => articles.filter(a => !a.source.toLowerCase().startsWith('x @') && a.source.toLowerCase() !== 'x'), [articles]);
+
+  const signalArticles = useMemo(() => [...regularArticles].sort((a, b) => (b.signalScore ?? 50) - (a.signalScore ?? 50)), [regularArticles]);
   const topSignals = signalArticles.filter(a => a.isTopSignal).slice(0, 6);
   const highSignal = signalArticles.filter(a => (a.signalScore ?? 50) >= 65 && !a.isTopSignal);
   const lowSignal = signalArticles.filter(a => (a.signalScore ?? 50) < 65 && !a.isTopSignal);
@@ -138,15 +142,15 @@ export default function Dashboard({ prefs, setPrefs, saved, read, onToggleSave, 
           {/* Quick Scan — first */}
           {activeFilter === 'all' && <QuickScan articles={articles} narratives={liveNarratives} lang={lang} />}
 
-          {/* X Signal placeholder */}
-          {activeFilter === 'all' && <XSignalPlaceholder lang={lang} />}
+          {/* X Signals */}
+          {activeFilter === 'all' && <XSignalPlaceholder lang={lang} xArticles={xArticles} />}
 
           {activeFilter === 'all' ? (
             <>
-          {/* Narratives — second */}
+              {/* Narratives — category-aware */}
               <NarrativeCard narratives={liveNarratives} lang={lang} categoryFilter="all" />
 
-              {/* Live Alpha Feed — third */}
+              {/* Live Alpha Feed */}
               {topSignals.length > 0 && (
                 <FeedSection title={tr.liveAlphaFeed} items={topSignals} {...cardProps} />
               )}
@@ -174,6 +178,7 @@ export default function Dashboard({ prefs, setPrefs, saved, read, onToggleSave, 
             </>
           ) : (
             <>
+              {/* Category-filtered narratives — hides if none match */}
               <NarrativeCard narratives={liveNarratives} lang={lang} categoryFilter={activeFilter} />
               <div className="space-y-2">
                 {signalArticles.map((item, i) => (
@@ -194,7 +199,6 @@ export default function Dashboard({ prefs, setPrefs, saved, read, onToggleSave, 
 
       <SettingsPanel prefs={prefs} setPrefs={setPrefs} open={settingsOpen} onClose={() => setSettingsOpen(false)} />
 
-      {/* Article Detail Modal */}
       <ArticleDetailModal
         item={detailItem}
         open={!!detailItem}

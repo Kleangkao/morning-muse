@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { NewsItem, Narrative } from '@/lib/types';
 import { Language } from '@/hooks/useLanguage';
 import { supabase } from '@/integrations/supabase/client';
@@ -11,22 +11,26 @@ interface Props {
   lang: Language;
 }
 
-const CACHE_KEY = 'quick-scan-cache';
+const CACHE_KEY_PREFIX = 'quick-scan-';
 const CACHE_DURATION = 15 * 60 * 1000;
 
 export default function QuickScan({ articles, narratives, lang }: Props) {
   const [bullets, setBullets] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
+  const prevLangRef = useRef(lang);
+
+  const articleHash = articles.slice(0, 5).map(a => a.id).join(',');
+  const cacheKey = `${CACHE_KEY_PREFIX}${lang}`;
 
   useEffect(() => {
     if (articles.length === 0) return;
 
-    // Check cache
+    // Check lang-specific cache
     try {
-      const raw = localStorage.getItem(CACHE_KEY);
+      const raw = localStorage.getItem(cacheKey);
       if (raw) {
         const cached = JSON.parse(raw);
-        if (cached.lang === lang && Date.now() - cached.ts < CACHE_DURATION && cached.articleHash === articles.slice(0, 5).map(a => a.id).join(',')) {
+        if (Date.now() - cached.ts < CACHE_DURATION && cached.articleHash === articleHash) {
           setBullets(cached.bullets);
           return;
         }
@@ -34,16 +38,16 @@ export default function QuickScan({ articles, narratives, lang }: Props) {
     } catch {}
 
     setLoading(true);
+    setBullets([]);
     generateBrief(articles, narratives, lang).then(b => {
       setBullets(b);
       try {
-        localStorage.setItem(CACHE_KEY, JSON.stringify({
-          bullets: b, lang, ts: Date.now(),
-          articleHash: articles.slice(0, 5).map(a => a.id).join(','),
+        localStorage.setItem(cacheKey, JSON.stringify({
+          bullets: b, ts: Date.now(), articleHash,
         }));
       } catch {}
     }).finally(() => setLoading(false));
-  }, [articles.slice(0, 3).map(a => a.id).join(','), lang]);
+  }, [articleHash, lang]);
 
   if (bullets.length === 0 && !loading) return null;
 
