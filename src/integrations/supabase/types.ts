@@ -14,7 +14,69 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      articles: {
+        Row: {
+          badges: string[]
+          category: string
+          created_at: string
+          id: string
+          impact_level: string
+          is_top_signal: boolean
+          market_direction: string
+          published_at: string
+          read_time: number
+          related_count: number
+          related_sources: string[]
+          signal_score: number
+          source: string
+          subtopic: string
+          summary: string
+          title: string
+          title_hash: string
+          url: string
+        }
+        Insert: {
+          badges?: string[]
+          category?: string
+          created_at?: string
+          id: string
+          impact_level?: string
+          is_top_signal?: boolean
+          market_direction?: string
+          published_at?: string
+          read_time?: number
+          related_count?: number
+          related_sources?: string[]
+          signal_score?: number
+          source?: string
+          subtopic?: string
+          summary?: string
+          title: string
+          title_hash?: string
+          url?: string
+        }
+        Update: {
+          badges?: string[]
+          category?: string
+          created_at?: string
+          id?: string
+          impact_level?: string
+          is_top_signal?: boolean
+          market_direction?: string
+          published_at?: string
+          read_time?: number
+          related_count?: number
+          related_sources?: string[]
+          signal_score?: number
+          source?: string
+          subtopic?: string
+          summary?: string
+          title?: string
+          title_hash?: string
+          url?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
