@@ -4,10 +4,8 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { usePreferences, useSavedArticles, useReadArticles } from "@/hooks/usePreferences";
-import Onboarding from "./pages/Onboarding";
-import Today from "./pages/Today";
+import Dashboard from "./pages/Dashboard";
 import Saved from "./pages/Saved";
-import SettingsPage from "./pages/SettingsPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -24,19 +22,10 @@ function AppRoutes() {
     }));
   };
 
-  if (!prefs.onboardingComplete) {
-    return (
-      <Routes>
-        <Route path="*" element={<Onboarding prefs={prefs} setPrefs={setPrefs} />} />
-      </Routes>
-    );
-  }
-
   return (
     <Routes>
-      <Route path="/" element={<Today prefs={prefs} saved={saved} read={read} onToggleSave={toggleSave} onToggleRead={toggleRead} onMuteSource={handleMuteSource} />} />
+      <Route path="/" element={<Dashboard prefs={prefs} setPrefs={setPrefs} saved={saved} read={read} onToggleSave={toggleSave} onToggleRead={toggleRead} onMuteSource={handleMuteSource} />} />
       <Route path="/saved" element={<Saved saved={saved} read={read} onToggleSave={toggleSave} onToggleRead={toggleRead} />} />
-      <Route path="/settings" element={<SettingsPage prefs={prefs} setPrefs={setPrefs} />} />
       <Route path="*" element={<NotFound />} />
     </Routes>
   );

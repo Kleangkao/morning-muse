@@ -1,7 +1,8 @@
-import { demoNews } from '@/lib/demo-data';
+import { useNews } from '@/hooks/useNews';
+import { usePreferences } from '@/hooks/usePreferences';
 import NewsCard from '@/components/NewsCard';
-import BottomNav from '@/components/BottomNav';
-import { Bookmark } from 'lucide-react';
+import { Bookmark, ArrowLeft } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 interface Props {
   saved: string[];
@@ -11,30 +12,31 @@ interface Props {
 }
 
 export default function SavedPage({ saved, read, onToggleSave, onToggleRead }: Props) {
-  const items = demoNews.filter(n => saved.includes(n.id));
+  const { prefs } = usePreferences();
+  const { articles } = useNews(prefs);
+  const navigate = useNavigate();
+  const items = articles.filter(n => saved.includes(n.id));
 
   return (
-    <div className="min-h-screen bg-background safe-bottom">
-      <header className="sticky top-0 z-40 bg-background/90 backdrop-blur-md border-b border-border/50 px-5 pt-5 pb-4">
-        <div className="flex items-center gap-2 mb-1">
-          <Bookmark className="h-5 w-5 text-primary" />
-          <span className="text-sm font-bold text-primary">Morning Feed</span>
+    <div className="min-h-screen bg-background">
+      <header className="sticky top-0 z-40 bg-background/90 backdrop-blur-md border-b border-border/50 px-4 pt-4 pb-3">
+        <div className="flex items-center gap-3">
+          <button onClick={() => navigate('/')} className="rounded-full p-1.5 hover:bg-secondary transition-colors">
+            <ArrowLeft className="h-5 w-5" />
+          </button>
+          <div>
+            <div className="flex items-center gap-2">
+              <Bookmark className="h-4 w-4 text-primary" />
+              <h1 className="text-xl font-display">Saved</h1>
+            </div>
+            <p className="text-[11px] text-muted-foreground">{items.length} article{items.length !== 1 ? 's' : ''}</p>
+          </div>
         </div>
-        <h1 className="text-2xl font-display">Saved</h1>
-        <p className="text-sm text-muted-foreground">{items.length} article{items.length !== 1 ? 's' : ''}</p>
       </header>
 
-      <main className="px-4 py-4 space-y-3 max-w-lg mx-auto">
+      <main className="px-4 py-4 space-y-2 max-w-2xl mx-auto">
         {items.map((item, i) => (
-          <NewsCard
-            key={item.id}
-            item={item}
-            saved={true}
-            isRead={read.includes(item.id)}
-            onToggleSave={onToggleSave}
-            onToggleRead={onToggleRead}
-            index={i}
-          />
+          <NewsCard key={item.id} item={item} saved={true} isRead={read.includes(item.id)} onToggleSave={onToggleSave} onToggleRead={onToggleRead} index={i} />
         ))}
         {items.length === 0 && (
           <div className="text-center py-20 text-muted-foreground">
@@ -43,8 +45,6 @@ export default function SavedPage({ saved, read, onToggleSave, onToggleRead }: P
           </div>
         )}
       </main>
-
-      <BottomNav />
     </div>
   );
 }
