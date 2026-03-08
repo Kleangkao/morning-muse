@@ -1,19 +1,17 @@
 import { useState, useCallback } from 'react';
-import { UserPreferences, TopicCategory } from '@/lib/types';
+import { UserPreferences } from '@/lib/types';
 
-const STORAGE_KEY = 'morning-feed-prefs';
-const SAVED_KEY = 'morning-feed-saved';
-const READ_KEY = 'morning-feed-read';
-const MUTED_KEY = 'morning-feed-muted';
+const STORAGE_KEY = 'alpha-dash-prefs';
+const SAVED_KEY = 'alpha-dash-saved';
+const READ_KEY = 'alpha-dash-read';
 
 const defaultPrefs: UserPreferences = {
-  interests: ['ai', 'crypto', 'investment'],
+  interests: ['ai', 'crypto', 'investment', 'macro', 'tech-stocks', 'commodities'],
   customKeywords: [],
-  sources: ['TechCrunch', 'CoinDesk', 'Bloomberg', 'The Verge'],
+  sources: ['TechCrunch', 'CoinDesk', 'Bloomberg', 'The Verge', 'Reuters', 'CNBC'],
   mutedSources: [],
   morningTime: '08:00',
   summaryLength: 'medium',
-  onboardingComplete: false,
 };
 
 function load<T>(key: string, fallback: T): T {
