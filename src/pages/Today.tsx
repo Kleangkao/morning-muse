@@ -51,7 +51,7 @@ export default function TodayPage({ prefs, saved, read, onToggleSave, onToggleRe
   const investmentArticles = articles.filter(a => a.category === 'investment' && !a.isTopSignal);
 
   const showSections = activeFilter === 'all';
-  const flatList = !showSections ? articles.filter(a => !a.isTopSignal || activeFilter === 'all') : [];
+  const flatList = !showSections ? articles : [];
 
   const today = new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
   const unreadCount = articles.filter(a => !read.includes(a.id)).length;
