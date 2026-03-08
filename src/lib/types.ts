@@ -32,6 +32,7 @@ export interface Narrative {
   id: string;
   title: string;
   whyItMatters: string;
+  whyItMattersTh: string;
   articleCount: number;
   category: TopicCategory;
   momentum: MomentumLabel;

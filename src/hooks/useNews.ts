@@ -136,6 +136,7 @@ export function useNews(prefs: UserPreferences) {
           id: n.id,
           title: n.title,
           whyItMatters: n.whyItMatters,
+          whyItMattersTh: n.whyItMattersTh || n.whyItMatters,
           articleCount: n.articleCount || n.articleIds?.length || 0,
           category: n.category as any,
           momentum: n.momentum as any,
