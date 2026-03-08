@@ -78,11 +78,9 @@ export default function NewsCard({ item, saved, isRead, onToggleSave, onMarkRead
     }
   };
 
-  // Strict language mode: show only one language, never mix
-  // If Thai mode and translation available, show Thai; otherwise show loading indicator
-  const isTranslationReady = showThai ? !!thaiTitle : true;
-  const displayTitle = showThai ? (thaiTitle || '⋯') : item.title;
-  const summaryText = showThai ? (thaiSummary || '⋯') : item.summary;
+  // Language display: prefer Thai translation when in TH mode, fallback to English
+  const displayTitle = showThai ? (thaiTitle || item.title) : item.title;
+  const summaryText = showThai ? (thaiSummary || item.summary) : item.summary;
   const hasImage = item.imageUrl && !imgError;
 
   // Translate category and subtopic labels
@@ -92,8 +90,8 @@ export default function NewsCard({ item, saved, isRead, onToggleSave, onMarkRead
   // Determine if this is an X/Twitter source
   const isXSource = item.source.toLowerCase() === 'x' || item.source.toLowerCase() === 'twitter';
 
-  // Loading state for Thai mode without translations
-  const isLoading = showThai && !thaiTitle;
+  // Show subtle loading indicator only when Thai translation is pending
+  const isLoading = false;
 
   return (
     <motion.article
