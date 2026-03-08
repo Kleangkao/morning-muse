@@ -167,7 +167,7 @@ export default function Dashboard({ prefs, setPrefs, saved, read, onToggleSave, 
             <>
               {/* Top Signals */}
               {topSignals.length > 0 && (
-                <FeedSection title="⚡ Live Alpha Feed" items={topSignals} saved={saved} read={read} onToggleSave={onToggleSave} onToggleRead={onToggleRead} onMuteSource={onMuteSource} />
+                <FeedSection title="⚡ Live Alpha Feed" items={topSignals} saved={saved} read={read} onToggleSave={onToggleSave} onToggleRead={onToggleRead} onMuteSource={onMuteSource} thaiSummaries={thaiSummaries} />
               )}
 
               {/* Emerging Narratives */}
@@ -175,7 +175,7 @@ export default function Dashboard({ prefs, setPrefs, saved, read, onToggleSave, 
 
               {/* High Signal */}
               {highSignal.length > 0 && (
-                <FeedSection title="📡 High Signal" items={highSignal} saved={saved} read={read} onToggleSave={onToggleSave} onToggleRead={onToggleRead} onMuteSource={onMuteSource} />
+                <FeedSection title="📡 High Signal" items={highSignal} saved={saved} read={read} onToggleSave={onToggleSave} onToggleRead={onToggleRead} onMuteSource={onMuteSource} thaiSummaries={thaiSummaries} />
               )}
 
               {/* Category sections */}
@@ -183,7 +183,7 @@ export default function Dashboard({ prefs, setPrefs, saved, read, onToggleSave, 
                 const catItems = highSignal.concat(lowSignal).filter(a => a.category === cat);
                 if (catItems.length === 0) return null;
                 return (
-                  <FeedSection key={cat} title={categoryLabels[cat]} items={catItems.slice(0, 5)} saved={saved} read={read} onToggleSave={onToggleSave} onToggleRead={onToggleRead} onMuteSource={onMuteSource} />
+                  <FeedSection key={cat} title={categoryLabels[cat]} items={catItems.slice(0, 5)} saved={saved} read={read} onToggleSave={onToggleSave} onToggleRead={onToggleRead} onMuteSource={onMuteSource} thaiSummaries={thaiSummaries} />
                 );
               })}
 
@@ -202,7 +202,7 @@ export default function Dashboard({ prefs, setPrefs, saved, read, onToggleSave, 
           ) : (
             <div className="space-y-2">
               {signalArticles.map((item, i) => (
-                <NewsCard key={item.id} item={item} saved={saved.includes(item.id)} isRead={read.includes(item.id)} onToggleSave={onToggleSave} onToggleRead={onToggleRead} onMuteSource={onMuteSource} index={i} />
+                <NewsCard key={item.id} item={item} saved={saved.includes(item.id)} isRead={read.includes(item.id)} onToggleSave={onToggleSave} onToggleRead={onToggleRead} onMuteSource={onMuteSource} index={i} thaiSummary={thaiSummaries[item.id]} />
               ))}
             </div>
           )}
