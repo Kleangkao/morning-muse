@@ -46,11 +46,14 @@ const RSS_FEEDS: RSSFeed[] = [
   { url: 'https://www.theblock.co/rss.xml', source: 'The Block', category: 'crypto', subtopic: 'DeFi', tier: 1 },
   { url: 'https://decrypt.co/feed', source: 'Decrypt', category: 'crypto', subtopic: 'L1', tier: 1 },
   { url: 'https://bitcoinmagazine.com/.rss/full/', source: 'Bitcoin Magazine', category: 'crypto', subtopic: 'L1', tier: 1 },
-  // Macro / Investment
+  // Macro / Investment / Markets
   { url: 'https://www.reuters.com/rssFeed/businessNews', source: 'Reuters', category: 'macro', subtopic: 'Macro Economy', tier: 1 },
-  { url: 'https://feeds.bbci.co.uk/news/business/rss.xml', source: 'Bloomberg', category: 'macro', subtopic: 'Macro Economy', tier: 1 },
+  { url: 'https://www.reuters.com/rssFeed/GCA-Commodities', source: 'Reuters Commodities', category: 'commodities', subtopic: 'Gold', tier: 1 },
+  { url: 'https://feeds.bbci.co.uk/news/business/rss.xml', source: 'BBC Business', category: 'macro', subtopic: 'Macro Economy', tier: 1 },
   { url: 'https://search.cnbc.com/rs/search/combinedcms/view.xml?partnerId=wrss01&id=10001147', source: 'CNBC', category: 'investment', subtopic: 'Market Movements', tier: 1 },
   { url: 'https://search.cnbc.com/rs/search/combinedcms/view.xml?partnerId=wrss01&id=15839069', source: 'CNBC Tech', category: 'tech-stocks', subtopic: 'Tech Stocks', tier: 1 },
+  { url: 'https://search.cnbc.com/rs/search/combinedcms/view.xml?partnerId=wrss01&id=20910258', source: 'CNBC Economy', category: 'macro', subtopic: 'Central Bank', tier: 1 },
+  { url: 'https://search.cnbc.com/rs/search/combinedcms/view.xml?partnerId=wrss01&id=10000664', source: 'CNBC Finance', category: 'investment', subtopic: 'Earnings', tier: 1 },
 
   // ═══ Tier 2: Quality Sources ═══
   // AI
@@ -59,15 +62,22 @@ const RSS_FEEDS: RSSFeed[] = [
   { url: 'https://arstechnica.com/ai/feed/', source: 'Ars Technica', category: 'ai', subtopic: 'Research', tier: 2 },
   { url: 'https://www.technologyreview.com/feed/', source: 'MIT Tech Review', category: 'ai', subtopic: 'Research', tier: 2 },
   { url: 'https://venturebeat.com/category/ai/feed/', source: 'VentureBeat', category: 'ai', subtopic: 'Startups', tier: 2 },
+  // Tech Stocks
+  { url: 'https://www.theverge.com/rss/index.xml', source: 'The Verge Tech', category: 'tech-stocks', subtopic: 'Tech Stocks', tier: 2 },
+  { url: 'https://arstechnica.com/gadgets/feed/', source: 'Ars Technica Tech', category: 'tech-stocks', subtopic: 'Tech Stocks', tier: 2 },
   // Macro / Investment
   { url: 'https://feeds.marketwatch.com/marketwatch/topstories/', source: 'MarketWatch', category: 'investment', subtopic: 'Market Movements', tier: 2 },
+  { url: 'https://feeds.marketwatch.com/marketwatch/marketpulse/', source: 'MarketWatch Pulse', category: 'macro', subtopic: 'Macro Economy', tier: 2 },
   { url: 'https://www.investing.com/rss/news.rss', source: 'Investing.com', category: 'investment', subtopic: 'Market Movements', tier: 2 },
+  { url: 'https://www.investing.com/rss/news_14.rss', source: 'Investing.com Commodities', category: 'commodities', subtopic: 'Gold', tier: 2 },
   // Commodities
-  { url: 'https://www.kitco.com/rss/gold.xml', source: 'Kitco', category: 'commodities', subtopic: 'Gold', tier: 2 },
+  { url: 'https://www.kitco.com/rss/gold.xml', source: 'Kitco Gold', category: 'commodities', subtopic: 'Gold', tier: 2 },
+  { url: 'https://oilprice.com/rss/main', source: 'OilPrice', category: 'commodities', subtopic: 'Oil', tier: 2 },
 
   // ═══ Tier 3: Secondary Sources ═══
   { url: 'https://thedefiant.io/feed', source: 'The Defiant', category: 'crypto', subtopic: 'DeFi', tier: 3 },
   { url: 'https://feeds.feedburner.com/zabornet', source: 'ZeroHedge', category: 'macro', subtopic: 'Macro Economy', tier: 3 },
+  { url: 'https://www.mining.com/feed/', source: 'Mining.com', category: 'commodities', subtopic: 'Metals', tier: 3 },
 ];
 
 // ─── HTML Entity Decoding ───
