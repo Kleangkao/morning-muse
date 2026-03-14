@@ -5,13 +5,7 @@ export type Language = 'en' | 'th';
 const LANG_KEY = 'alpha-dash-lang';
 
 export function useLanguage() {
-  const [lang, setLangState] = useState<Language>(() => {
-    try {
-      const stored = localStorage.getItem(LANG_KEY);
-      if (stored === 'th' || stored === 'en') return stored;
-    } catch {}
-    return 'en';
-  });
+  const [lang, setLangState] = useState<Language>('en');
 
   const setLang = useCallback((l: Language) => {
     setLangState(l);

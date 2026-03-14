@@ -105,10 +105,6 @@ export default function Dashboard({ prefs, setPrefs, saved, read, onToggleSave, 
                 {isLive ? <Wifi className="h-3 w-3 text-emerald-500" /> : <WifiOff className="h-3 w-3 text-muted-foreground" />}
               </div>
               <div className="flex items-center gap-0.5">
-                <div className="flex items-center rounded-lg bg-secondary p-0.5 mr-1.5">
-                  <button onClick={() => setLang('en')} className={`rounded-md px-2.5 py-1 text-[11px] font-medium transition-all ${lang === 'en' ? 'bg-card text-foreground shadow-sm' : 'text-muted-foreground'}`}>EN</button>
-                  <button onClick={() => setLang('th')} className={`rounded-md px-2.5 py-1 text-[11px] font-medium transition-all ${lang === 'th' ? 'bg-card text-foreground shadow-sm' : 'text-muted-foreground'}`}>TH</button>
-                </div>
                 <button onClick={refresh} disabled={isLoading} className="rounded-lg p-2 hover:bg-secondary transition-colors"><RefreshCw className={`h-4 w-4 text-muted-foreground ${isLoading ? 'animate-spin' : ''}`} /></button>
                 <button onClick={() => setShowSearch(!showSearch)} className="rounded-lg p-2 hover:bg-secondary transition-colors">{showSearch ? <X className="h-4 w-4 text-foreground" /> : <Search className="h-4 w-4 text-muted-foreground" />}</button>
                 <button onClick={() => navigate('/saved')} className="rounded-lg p-2 hover:bg-secondary transition-colors"><Bookmark className="h-4 w-4 text-muted-foreground" /></button>
