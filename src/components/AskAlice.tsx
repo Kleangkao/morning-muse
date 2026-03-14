@@ -163,21 +163,14 @@ export default function AskAlice({ lang }: Props) {
         <motion.img
           src="/images/alice-character.png"
           alt="Alice"
-          className="w-16 h-16 object-contain mb-1 pointer-events-none drop-shadow-lg"
+          className="w-16 h-16 object-contain drop-shadow-lg cursor-pointer"
           initial={{ y: 0 }}
           animate={{ y: [0, -4, 0] }}
           transition={{ duration: 2.5, repeat: Infinity, ease: 'easeInOut' }}
-          whileHover={{ y: -12 }}
-        />
-        <motion.button
+          whileHover={{ y: -12, scale: 1.1 }}
+          whileTap={{ scale: 0.95 }}
           onClick={() => { setOpen(true); setTimeout(() => inputRef.current?.focus(), 100); }}
-          className="flex items-center gap-2.5 rounded-xl bg-foreground px-5 py-3 text-background font-medium shadow-lg hover:shadow-xl transition-all group"
-          whileHover={{ scale: 1.03 }}
-          whileTap={{ scale: 0.97 }}
-        >
-          <Sparkles className="h-4 w-4" />
-          <span className="text-[13px] tracking-tight">{label}</span>
-        </motion.button>
+        />
       </div>
 
       {/* Panel overlay */}
