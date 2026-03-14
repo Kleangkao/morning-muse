@@ -197,8 +197,6 @@ export default function Dashboard({ prefs, setPrefs, saved, read, onToggleSave, 
         thaiTitle={detailItem ? thaiTitles[detailItem.id] : undefined}
         thaiSummary={detailItem ? thaiSummaries[detailItem.id] : undefined}
       />
-
-      <AskAlice lang={lang} />
     </div>
   );
 }
