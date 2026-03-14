@@ -9,7 +9,6 @@ import SettingsPanel from '@/components/SettingsPanel';
 import QuickScan from '@/components/QuickScan';
 import ArticleDetailModal from '@/components/ArticleDetailModal';
 import XSignalPlaceholder from '@/components/XSignalPlaceholder';
-import AskAlice from '@/components/AskAlice';
 import { Zap, Search, X, RefreshCw, Wifi, WifiOff, Settings, Bookmark } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
