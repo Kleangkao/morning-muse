@@ -159,17 +159,14 @@ export default function AskAlice({ lang }: Props) {
   return (
     <>
       {/* Floating button with Alice character */}
-      <div className="fixed bottom-5 right-5 z-50 flex flex-col items-center">
+      <div className="fixed bottom-5 right-5 z-50">
         <motion.img
           src="/images/alice-character.png"
           alt="Alice"
-          className="w-16 h-16 object-contain drop-shadow-lg cursor-pointer"
+          className="w-16 h-16 object-contain drop-shadow-lg pointer-events-none"
           initial={{ y: 0 }}
           animate={{ y: [0, -4, 0] }}
           transition={{ duration: 2.5, repeat: Infinity, ease: 'easeInOut' }}
-          whileHover={{ y: -12, scale: 1.1 }}
-          whileTap={{ scale: 0.95 }}
-          onClick={() => { setOpen(true); setTimeout(() => inputRef.current?.focus(), 100); }}
         />
       </div>
 
