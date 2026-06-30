@@ -189,7 +189,17 @@ export default function SettingsPanel({ prefs, setPrefs, open, onClose }: Props)
                 </div>
               </AccordionSection>
             </div>
+
+            <div className="px-4 pb-6 pt-2 flex items-center gap-4 text-xs text-muted-foreground border-t border-border/50 mt-2">
+              <a href="/terms" className="hover:text-foreground underline">Terms of Use</a>
+              <a href="/privacy" className="hover:text-foreground underline">Privacy Policy</a>
+            </div>
           </motion.aside>
+        </>
+      )}
+    </AnimatePresence>
+  );
+}
         </>
       )}
     </AnimatePresence>
