@@ -200,11 +200,6 @@ export default function SettingsPanel({ prefs, setPrefs, open, onClose }: Props)
     </AnimatePresence>
   );
 }
-        </>
-      )}
-    </AnimatePresence>
-  );
-}
 
 function AccordionSection({ title, id, expanded, onToggle, children }: {
   title: string; id: string; expanded: string | null; onToggle: (id: string) => void; children: React.ReactNode;
