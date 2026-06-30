@@ -14,7 +14,7 @@ export default function Terms() {
 
         <div className="space-y-6 text-[15px] leading-relaxed text-foreground">
           <section>
-            <p><strong>Publisher:</strong> Shisa Sorasivisut</p>
+            <p><strong>Operator:</strong> Alice Daily</p>
             <p><strong>Website:</strong> <a className="underline" href="https://alicedaily.org">https://alicedaily.org</a></p>
             <p><strong>Contact:</strong> <a className="underline" href="mailto:alicearcadegg@gmail.com">alicearcadegg@gmail.com</a></p>
           </section>
