@@ -7,6 +7,8 @@ import { usePreferences, useSavedArticles, useReadArticles } from "@/hooks/usePr
 import { useLanguage } from "@/hooks/useLanguage";
 import Dashboard from "./pages/Dashboard";
 import Saved from "./pages/Saved";
+import Terms from "./pages/Terms";
+import Privacy from "./pages/Privacy";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -28,6 +30,8 @@ function AppRoutes() {
     <Routes>
       <Route path="/" element={<Dashboard prefs={prefs} setPrefs={setPrefs} saved={saved} read={read} onToggleSave={toggleSave} onMarkRead={markRead} onMuteSource={handleMuteSource} lang={lang} setLang={setLang} />} />
       <Route path="/saved" element={<Saved saved={saved} read={read} onToggleSave={toggleSave} onMarkRead={markRead} lang={lang} />} />
+      <Route path="/terms" element={<Terms />} />
+      <Route path="/privacy" element={<Privacy />} />
       <Route path="*" element={<NotFound />} />
     </Routes>
   );
