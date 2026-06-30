@@ -58,7 +58,7 @@ export default function Terms() {
 
           <section>
             <h2 className="font-semibold text-lg mb-2">7. Limitation of liability</h2>
-            <p>To the fullest extent permitted by law, Shisa Sorasivisut and contributors will not be liable for any indirect, incidental, special, consequential, or punitive damages, or for any loss of profits, data, digital assets, or goodwill arising from your use of the Service.</p>
+            <p>To the fullest extent permitted by law, Alice Daily and contributors will not be liable for any indirect, incidental, special, consequential, or punitive damages, or for any loss of profits, data, digital assets, or goodwill arising from your use of the Service.</p>
           </section>
 
           <section>

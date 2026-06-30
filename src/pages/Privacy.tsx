@@ -21,7 +21,7 @@ export default function Privacy() {
 
           <section>
             <h2 className="font-semibold text-lg mb-2">1. Overview</h2>
-            <p>This Privacy Policy describes how Shisa Sorasivisut ("we", "us") handles information when you use Alice Daily (the "Service").</p>
+            <p>This Privacy Policy describes how Alice Daily ("we", "us") handles information when you use Alice Daily (the "Service").</p>
           </section>
 
           <section>
