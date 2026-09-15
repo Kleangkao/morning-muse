@@ -35,8 +35,8 @@ const FILTER_TABS: { id: TopicCategory | 'all'; label: string }[] = [
   { id: 'commodities', label: '🪙 Commodities' },
 ];
 
-function formatLastUpdated(iso: string | null, lang: Language): string {
-  if (!iso) return t(lang).demoData;
+function formatLastUpdated(iso: string | null, lang: Language, hasFeedError: boolean): string {
+  if (!iso) return hasFeedError ? t(lang).liveFeedUnavailable : t(lang).demoData;
   return new Date(iso).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 }
 
@@ -46,7 +46,7 @@ export default function Dashboard({ prefs, setPrefs, saved, read, onToggleSave, 
   const [showSearch, setShowSearch] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [detailItem, setDetailItem] = useState<NewsItem | null>(null);
-  const { articles: liveArticles, narratives: liveNarratives, thaiTitles, thaiSummaries, isLoading, lastUpdated, isLive, refresh } = useNews(prefs);
+  const { articles: liveArticles, narratives: liveNarratives, thaiTitles, thaiSummaries, isLoading, lastUpdated, isLive, hasFeedError, refresh } = useNews(prefs);
   const navigate = useNavigate();
   const tr = t(lang);
   const showThai = lang === 'th';
@@ -111,7 +111,7 @@ export default function Dashboard({ prefs, setPrefs, saved, read, onToggleSave, 
                 <button onClick={() => setSettingsOpen(true)} className="rounded-lg p-2 hover:bg-secondary transition-colors"><Settings className="h-4 w-4 text-muted-foreground" /></button>
               </div>
             </div>
-            <p className="text-[12px] text-muted-foreground font-light">{today} · {unreadCount} {tr.unread} · {tr.updated} {formatLastUpdated(lastUpdated, lang)}</p>
+            <p className="text-[12px] text-muted-foreground font-light">{today} · {unreadCount} {tr.unread} · {tr.updated} {formatLastUpdated(lastUpdated, lang, hasFeedError)}</p>
             {showSearch && (
               <input autoFocus value={search} onChange={e => setSearch(e.target.value)} placeholder={tr.searchPlaceholder}
                 className="mt-3 w-full rounded-xl border border-input bg-background px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-ring/30 transition-all" />
@@ -132,6 +132,14 @@ export default function Dashboard({ prefs, setPrefs, saved, read, onToggleSave, 
             <div className="text-center py-6">
               <RefreshCw className="h-5 w-5 text-primary animate-spin mx-auto mb-2" />
               <p className="text-sm text-muted-foreground font-light">{tr.fetchingIntelligence}</p>
+            </div>
+          )}
+
+          {hasFeedError && !isLoading && (
+            <div role="alert" className="rounded-xl border border-destructive/20 bg-destructive/5 px-4 py-3 flex items-center gap-3">
+              <WifiOff className="h-4 w-4 shrink-0 text-destructive" />
+              <p className="text-sm text-muted-foreground flex-1">{tr.liveFeedUnavailable}</p>
+              <button onClick={refresh} className="text-sm font-medium text-foreground hover:underline">{tr.retry}</button>
             </div>
           )}
 

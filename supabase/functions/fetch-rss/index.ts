@@ -45,16 +45,14 @@ const RSS_FEEDS: RSSFeed[] = [
   { url: 'https://cointelegraph.com/rss', source: 'CoinTelegraph', category: 'crypto', subtopic: 'Altcoins', tier: 1 },
   { url: 'https://www.theblock.co/rss.xml', source: 'The Block', category: 'crypto', subtopic: 'DeFi', tier: 1 },
   { url: 'https://decrypt.co/feed', source: 'Decrypt', category: 'crypto', subtopic: 'L1', tier: 1 },
-  { url: 'https://bitcoinmagazine.com/.rss/full/', source: 'Bitcoin Magazine', category: 'crypto', subtopic: 'L1', tier: 1 },
 
-  // Macro / Investment / Markets — EXPANDED
-  { url: 'https://www.reuters.com/rssFeed/businessNews', source: 'Reuters', category: 'macro', subtopic: 'Macro Economy', tier: 1 },
-  { url: 'https://www.reuters.com/rssFeed/GCA-Commodities', source: 'Reuters Commodities', category: 'commodities', subtopic: 'Gold', tier: 1 },
-  { url: 'https://www.reuters.com/rssFeed/GCA-CentralBanksTop', source: 'Reuters Central Banks', category: 'macro', subtopic: 'Central Bank', tier: 1 },
-  { url: 'https://www.reuters.com/rssFeed/GCA-EconomicNews', source: 'Reuters Economy', category: 'macro', subtopic: 'Macro Economy', tier: 1 },
-  { url: 'https://www.reuters.com/rssFeed/GCA-BondsNews', source: 'Reuters Bonds', category: 'macro', subtopic: 'Market Movements', tier: 1 },
-  { url: 'https://www.reuters.com/rssFeed/GCA-ForeignExchange', source: 'Reuters FX', category: 'macro', subtopic: 'Macro Economy', tier: 1 },
-  { url: 'https://www.reuters.com/rssFeed/GCA-EnergyTop', source: 'Reuters Energy', category: 'commodities', subtopic: 'Oil', tier: 1 },
+  // Macro / Investment / Markets
+  // Reuters' legacy RSS endpoints now return 401, so use sources that expose
+  // public feeds instead of silently wasting a fetch slot on blocked URLs.
+  { url: 'https://www.federalreserve.gov/feeds/press_all.xml', source: 'Federal Reserve', category: 'macro', subtopic: 'Central Bank', tier: 1 },
+  { url: 'https://www.ecb.europa.eu/rss/press.html', source: 'ECB', category: 'macro', subtopic: 'Central Bank', tier: 1 },
+  { url: 'https://www.ft.com/?format=rss', source: 'Financial Times', category: 'investment', subtopic: 'Market Movements', tier: 1 },
+  { url: 'https://feeds.a.dj.com/rss/RSSMarketsMain.xml', source: 'WSJ Markets', category: 'investment', subtopic: 'Market Movements', tier: 1 },
   { url: 'https://feeds.bbci.co.uk/news/business/rss.xml', source: 'BBC Business', category: 'macro', subtopic: 'Macro Economy', tier: 1 },
   { url: 'https://search.cnbc.com/rs/search/combinedcms/view.xml?partnerId=wrss01&id=10001147', source: 'CNBC', category: 'investment', subtopic: 'Market Movements', tier: 1 },
   { url: 'https://search.cnbc.com/rs/search/combinedcms/view.xml?partnerId=wrss01&id=15839069', source: 'CNBC Tech', category: 'tech-stocks', subtopic: 'Tech Stocks', tier: 1 },
@@ -69,81 +67,33 @@ const RSS_FEEDS: RSSFeed[] = [
   { url: 'https://www.theverge.com/rss/ai-artificial-intelligence/index.xml', source: 'The Verge AI', category: 'ai', subtopic: 'Companies', tier: 2 },
   { url: 'https://arstechnica.com/ai/feed/', source: 'Ars Technica AI', category: 'ai', subtopic: 'Research', tier: 2 },
   { url: 'https://www.technologyreview.com/feed/', source: 'MIT Tech Review', category: 'ai', subtopic: 'Research', tier: 2 },
-  { url: 'https://venturebeat.com/category/ai/feed/', source: 'VentureBeat', category: 'ai', subtopic: 'Startups', tier: 2 },
+  { url: 'https://techcrunch.com/category/startups/feed/', source: 'TechCrunch Startups', category: 'ai', subtopic: 'Startups', tier: 2 },
 
   // Tech — EXPANDED
   { url: 'https://techcrunch.com/feed/', source: 'TechCrunch', category: 'tech-stocks', subtopic: 'Tech Stocks', tier: 1 },
   { url: 'https://www.theverge.com/rss/index.xml', source: 'The Verge', category: 'tech-stocks', subtopic: 'Tech Stocks', tier: 2 },
   { url: 'https://arstechnica.com/gadgets/feed/', source: 'Ars Technica', category: 'tech-stocks', subtopic: 'Tech Stocks', tier: 2 },
   { url: 'https://www.wired.com/feed/rss', source: 'Wired', category: 'tech-stocks', subtopic: 'Tech Stocks', tier: 2 },
-  { url: 'https://feeds.feedburner.com/TechCrunch/startups', source: 'TechCrunch Startups', category: 'tech-stocks', subtopic: 'Startups', tier: 2 },
-  { url: 'https://www.tomshardware.com/feeds/all', source: "Tom's Hardware", category: 'tech-stocks', subtopic: 'Tech Stocks', tier: 2 },
   { url: 'https://siliconangle.com/feed/', source: 'SiliconANGLE', category: 'tech-stocks', subtopic: 'Tech Stocks', tier: 2 },
   { url: 'https://9to5mac.com/feed/', source: '9to5Mac', category: 'tech-stocks', subtopic: 'Tech Stocks', tier: 2 },
 
   // Macro — EXPANDED
   { url: 'https://feeds.marketwatch.com/marketwatch/topstories/', source: 'MarketWatch', category: 'investment', subtopic: 'Market Movements', tier: 2 },
-  { url: 'https://feeds.marketwatch.com/marketwatch/marketpulse/', source: 'MarketWatch Pulse', category: 'macro', subtopic: 'Macro Economy', tier: 2 },
-  { url: 'https://feeds.marketwatch.com/marketwatch/economyandpolitics/', source: 'MarketWatch Economy', category: 'macro', subtopic: 'Macro Economy', tier: 2 },
   { url: 'https://www.investing.com/rss/news.rss', source: 'Investing.com', category: 'investment', subtopic: 'Market Movements', tier: 2 },
   { url: 'https://www.investing.com/rss/news_14.rss', source: 'Investing.com Commodities', category: 'commodities', subtopic: 'Gold', tier: 2 },
   { url: 'https://www.investing.com/rss/news_301.rss', source: 'Investing.com Economy', category: 'macro', subtopic: 'Macro Economy', tier: 2 },
-  { url: 'https://tradingeconomics.com/rss/news.aspx', source: 'TradingEconomics', category: 'macro', subtopic: 'Macro Economy', tier: 2 },
 
   // Commodities
-  { url: 'https://www.kitco.com/rss/gold.xml', source: 'Kitco Gold', category: 'commodities', subtopic: 'Gold', tier: 2 },
+  { url: 'https://www.eia.gov/rss/todayinenergy.xml', source: 'EIA Energy', category: 'commodities', subtopic: 'Oil', tier: 2 },
   { url: 'https://oilprice.com/rss/main', source: 'OilPrice', category: 'commodities', subtopic: 'Oil', tier: 2 },
 
   // ═══ Tier 3: Secondary Sources ═══
   { url: 'https://thedefiant.io/feed', source: 'The Defiant', category: 'crypto', subtopic: 'DeFi', tier: 3 },
-  { url: 'https://feeds.feedburner.com/zabornet', source: 'ZeroHedge', category: 'macro', subtopic: 'Macro Economy', tier: 3 },
   { url: 'https://www.mining.com/feed/', source: 'Mining.com', category: 'commodities', subtopic: 'Metals', tier: 3 },
 
-  // ═══ X / Twitter Signal Feeds — Curated Nitter Sources ═══
-  // AI
-  { url: 'https://nitter.net/OpenAI/rss', source: 'X @OpenAI', category: 'ai', subtopic: 'Companies', tier: 1 },
-  { url: 'https://nitter.net/OpenAIDevs/rss', source: 'X @OpenAIDevs', category: 'ai', subtopic: 'Models', tier: 2 },
-  { url: 'https://nitter.net/sama/rss', source: 'X @sama', category: 'ai', subtopic: 'Companies', tier: 1 },
-  { url: 'https://nitter.net/AnthropicAI/rss', source: 'X @AnthropicAI', category: 'ai', subtopic: 'Models', tier: 1 },
-  { url: 'https://nitter.net/GoogleDeepMind/rss', source: 'X @GoogleDeepMind', category: 'ai', subtopic: 'Research', tier: 1 },
-  { url: 'https://nitter.net/ilyasut/rss', source: 'X @ilyasut', category: 'ai', subtopic: 'Research', tier: 2 },
-  { url: 'https://nitter.net/karpathy/rss', source: 'X @karpathy', category: 'ai', subtopic: 'Research', tier: 1 },
-  { url: 'https://nitter.net/TheAITimeline/rss', source: 'X @TheAITimeline', category: 'ai', subtopic: 'Companies', tier: 2 },
-  { url: 'https://nitter.net/perplexity_ai/rss', source: 'X @perplexity_ai', category: 'ai', subtopic: 'Startups', tier: 2 },
-  { url: 'https://nitter.net/stabilityai/rss', source: 'X @stabilityai', category: 'ai', subtopic: 'Models', tier: 2 },
-  // Crypto
-  { url: 'https://nitter.net/CoinDesk/rss', source: 'X @CoinDesk', category: 'crypto', subtopic: 'L1', tier: 1 },
-  { url: 'https://nitter.net/Cointelegraph/rss', source: 'X @Cointelegraph', category: 'crypto', subtopic: 'Altcoins', tier: 1 },
-  { url: 'https://nitter.net/TheBlock__/rss', source: 'X @TheBlock__', category: 'crypto', subtopic: 'DeFi', tier: 1 },
-  { url: 'https://nitter.net/DecryptMedia/rss', source: 'X @DecryptMedia', category: 'crypto', subtopic: 'L1', tier: 2 },
-  { url: 'https://nitter.net/BitcoinMagazine/rss', source: 'X @BitcoinMagazine', category: 'crypto', subtopic: 'L1', tier: 1 },
-  { url: 'https://nitter.net/WuBlockchain/rss', source: 'X @WuBlockchain', category: 'crypto', subtopic: 'Altcoins', tier: 2 },
-  { url: 'https://nitter.net/DocumentingBTC/rss', source: 'X @DocumentingBTC', category: 'crypto', subtopic: 'L1', tier: 2 },
-  { url: 'https://nitter.net/glabornet/rss', source: 'X @Glassnode', category: 'crypto', subtopic: 'L1', tier: 2 },
-  { url: 'https://nitter.net/lookonchain/rss', source: 'X @lookonchain', category: 'crypto', subtopic: 'DeFi', tier: 1 },
-  { url: 'https://nitter.net/ArkhamIntel/rss', source: 'X @ArkhamIntel', category: 'crypto', subtopic: 'L1', tier: 1 },
-  // Macro
-  { url: 'https://nitter.net/KobeissiLetter/rss', source: 'X @KobeissiLetter', category: 'macro', subtopic: 'Macro Economy', tier: 1 },
-  { url: 'https://nitter.net/unusual_whales/rss', source: 'X @unusual_whales', category: 'macro', subtopic: 'Market Movements', tier: 1 },
-  { url: 'https://nitter.net/WatcherGuru/rss', source: 'X @WatcherGuru', category: 'macro', subtopic: 'Market Movements', tier: 1 },
-  { url: 'https://nitter.net/WalterBloomberg/rss', source: 'X @WalterBloomberg', category: 'macro', subtopic: 'Market Movements', tier: 1 },
-  { url: 'https://nitter.net/MacroAlf/rss', source: 'X @MacroAlf', category: 'macro', subtopic: 'Macro Economy', tier: 2 },
-  { url: 'https://nitter.net/LynAldenContact/rss', source: 'X @LynAldenContact', category: 'macro', subtopic: 'Macro Economy', tier: 2 },
-  { url: 'https://nitter.net/RaoulGMI/rss', source: 'X @RaoulGMI', category: 'macro', subtopic: 'Macro Economy', tier: 2 },
-  { url: 'https://nitter.net/LukeGromen/rss', source: 'X @LukeGromen', category: 'macro', subtopic: 'Macro Economy', tier: 2 },
-  { url: 'https://nitter.net/biancoresearch/rss', source: 'X @biancoresearch', category: 'macro', subtopic: 'Macro Economy', tier: 2 },
-  { url: 'https://nitter.net/TheMarketEar/rss', source: 'X @TheMarketEar', category: 'macro', subtopic: 'Market Movements', tier: 2 },
-  // Tech & Markets
-  { url: 'https://nitter.net/TechCrunch/rss', source: 'X @TechCrunch', category: 'tech-stocks', subtopic: 'Tech Stocks', tier: 1 },
-  { url: 'https://nitter.net/verge/rss', source: 'X @verge', category: 'tech-stocks', subtopic: 'Tech Stocks', tier: 2 },
-  { url: 'https://nitter.net/ArsTechnica/rss', source: 'X @ArsTechnica', category: 'tech-stocks', subtopic: 'Tech Stocks', tier: 2 },
-  { url: 'https://nitter.net/CNBC/rss', source: 'X @CNBC', category: 'investment', subtopic: 'Market Movements', tier: 1 },
-  { url: 'https://nitter.net/ReutersBiz/rss', source: 'X @ReutersBiz', category: 'investment', subtopic: 'Market Movements', tier: 1 },
-  { url: 'https://nitter.net/BloombergTech/rss', source: 'X @BloombergTech', category: 'tech-stocks', subtopic: 'Tech Stocks', tier: 1 },
-  { url: 'https://nitter.net/StockMKTNewz/rss', source: 'X @StockMKTNewz', category: 'investment', subtopic: 'Market Movements', tier: 2 },
-  { url: 'https://nitter.net/DeItaone/rss', source: 'X @DeItaone', category: 'investment', subtopic: 'Market Movements', tier: 1 },
-  { url: 'https://nitter.net/business/rss', source: 'X @business', category: 'investment', subtopic: 'Market Movements', tier: 1 },
-  { url: 'https://nitter.net/WSJmarkets/rss', source: 'X @WSJmarkets', category: 'investment', subtopic: 'Market Movements', tier: 1 },
+  // X/Nitter feeds were removed because all configured public instances are
+  // currently unreachable. Add an authenticated X provider here when one is
+  // available; do not block every refresh on dead mirror instances.
 ];
 
 // ─── HTML Entity Decoding ───
@@ -183,21 +133,22 @@ function stripHtml(html: string): string {
 
 function extractImage(block: string): string {
   // media:content
-  const mediaContent = block.match(/<media:content[^>]+url="([^"]+)"/i);
-  if (mediaContent?.[1]) return mediaContent[1];
+  const mediaContent = block.match(/<media:content\b[^>]*\burl\s*=\s*(["'])(.*?)\1/i);
+  if (mediaContent?.[2]) return mediaContent[2];
 
   // media:thumbnail
-  const mediaThumbnail = block.match(/<media:thumbnail[^>]+url="([^"]+)"/i);
-  if (mediaThumbnail?.[1]) return mediaThumbnail[1];
+  const mediaThumbnail = block.match(/<media:thumbnail\b[^>]*\burl\s*=\s*(["'])(.*?)\1/i);
+  if (mediaThumbnail?.[2]) return mediaThumbnail[2];
 
   // enclosure (image type)
-  const enclosure = block.match(/<enclosure[^>]+type="image\/[^"]*"[^>]+url="([^"]+)"/i)
-    || block.match(/<enclosure[^>]+url="([^"]+)"[^>]+type="image\/[^"]*"/i);
-  if (enclosure?.[1]) return enclosure[1];
+  const enclosure = block.match(/<enclosure\b[^>]*\btype\s*=\s*(["'])image\/[^"']*\1[^>]*\burl\s*=\s*(["'])(.*?)\2/i)
+    || block.match(/<enclosure\b[^>]*\burl\s*=\s*(["'])(.*?)\1[^>]*\btype\s*=\s*(["'])image\/[^"']*\3/i);
+  if (enclosure?.[3]) return enclosure[3];
+  if (enclosure?.[2]) return enclosure[2];
 
   // img tag inside content
-  const imgTag = block.match(/<img[^>]+src="([^"]+)"/i);
-  if (imgTag?.[1] && !imgTag[1].includes('tracking') && !imgTag[1].includes('pixel')) return imgTag[1];
+  const imgTag = block.match(/<img\b[^>]*\bsrc\s*=\s*(["'])(.*?)\1/i);
+  if (imgTag?.[2] && !imgTag[2].includes('tracking') && !imgTag[2].includes('pixel')) return imgTag[2];
 
   return '';
 }
@@ -268,7 +219,7 @@ function classifyCategory(title: string, summary: string, defaultCategory: strin
   let bestCat = defaultCategory;
   let bestScore = 0;
   for (const [cat, keywords] of Object.entries(CATEGORY_KEYWORDS)) {
-    const score = keywords.filter(k => text.includes(k)).length;
+    const score = keywords.filter(k => matchesKeyword(text, k)).length;
     if (score > bestScore) { bestScore = score; bestCat = cat; }
   }
   return bestScore >= 2 ? bestCat : defaultCategory;
@@ -279,10 +230,15 @@ function classifySubtopic(title: string, summary: string, defaultSubtopic: strin
   let bestMatch = defaultSubtopic;
   let bestScore = 0;
   for (const [subtopic, keywords] of Object.entries(SUBTOPIC_KEYWORDS)) {
-    const score = keywords.filter(k => text.includes(k)).length;
+    const score = keywords.filter(k => matchesKeyword(text, k)).length;
     if (score > bestScore) { bestScore = score; bestMatch = subtopic; }
   }
   return bestMatch;
+}
+
+function matchesKeyword(text: string, keyword: string): boolean {
+  const escaped = keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  return new RegExp(`(?<![a-z0-9])${escaped}(?![a-z0-9])`, 'i').test(text);
 }
 
 // ─── Impact Scoring ───
@@ -354,7 +310,7 @@ function estimateReadTime(text: string): number {
 }
 
 function makeTitleHash(title: string): string {
-  return title.toLowerCase().replace(/[^a-z0-9\s]/g, '').replace(/\s+/g, ' ').trim().slice(0, 80);
+  return title.toLocaleLowerCase().normalize('NFKC').replace(/[^\p{L}\p{N}\s]/gu, '').replace(/\s+/g, ' ').trim().slice(0, 120);
 }
 
 function hashString(str: string): string {
@@ -373,7 +329,7 @@ function parseItems(xml: string): Array<{ title: string; link: string; descripti
   while ((match = itemRegex.exec(xml)) !== null) {
     const block = match[1];
     const title = stripHtml(block.match(/<title[^>]*>([\s\S]*?)<\/title>/i)?.[1] || '');
-    const link = stripHtml(block.match(/<link[^>]*>([\s\S]*?)<\/link>/i)?.[1] || block.match(/<link[^>]*href="([^"]+)"/i)?.[1] || '');
+    const link = extractLink(block);
     const description = stripHtml(block.match(/<description[^>]*>([\s\S]*?)<\/description>/i)?.[1] || block.match(/<content:encoded[^>]*>([\s\S]*?)<\/content:encoded>/i)?.[1] || '');
     const pubDate = stripHtml(block.match(/<pubDate[^>]*>([\s\S]*?)<\/pubDate>/i)?.[1] || block.match(/<dc:date[^>]*>([\s\S]*?)<\/dc:date>/i)?.[1] || '');
     const imageUrl = extractImage(block);
@@ -384,7 +340,7 @@ function parseItems(xml: string): Array<{ title: string; link: string; descripti
     while ((match = entryRegex.exec(xml)) !== null) {
       const block = match[1];
       const title = stripHtml(block.match(/<title[^>]*>([\s\S]*?)<\/title>/i)?.[1] || '');
-      const link = block.match(/<link[^>]*href="([^"]+)"/i)?.[1] || '';
+      const link = extractLink(block);
       const description = stripHtml(block.match(/<summary[^>]*>([\s\S]*?)<\/summary>/i)?.[1] || block.match(/<content[^>]*>([\s\S]*?)<\/content>/i)?.[1] || '');
       const pubDate = stripHtml(block.match(/<published[^>]*>([\s\S]*?)<\/published>/i)?.[1] || block.match(/<updated[^>]*>([\s\S]*?)<\/updated>/i)?.[1] || '');
       const imageUrl = extractImage(block);
@@ -392,6 +348,15 @@ function parseItems(xml: string): Array<{ title: string; link: string; descripti
     }
   }
   return items;
+}
+
+function extractLink(block: string): string {
+  const linkText = block.match(/<link\b[^>]*>([\s\S]*?)<\/link>/i)?.[1];
+  if (linkText) return stripHtml(linkText);
+
+  const links = [...block.matchAll(/<link\b([^>]*)>/gi)].map(match => match[1]);
+  const preferred = links.find(attrs => /\brel=["']alternate["']/i.test(attrs)) || links[0];
+  return preferred?.match(/\bhref=["']([^"']+)["']/i)?.[1] || '';
 }
 
 // Nitter fallback instances for X feeds
@@ -448,8 +413,16 @@ async function fetchFeed(feed: RSSFeed): Promise<NormalizedArticle[]> {
       }
     } else {
       const response = await fetchWithTimeout(feed.url, 8000);
-      if (!response.ok) return [];
+      if (!response.ok) {
+        console.warn(`Feed ${feed.source} returned HTTP ${response.status}`);
+        return [];
+      }
       xml = await response.text();
+    }
+
+    if (!/<(?:rss|feed|rdf:RDF)\b/i.test(xml)) {
+      console.warn(`Feed ${feed.source} did not return an RSS/Atom document`);
+      return [];
     }
 
     const items = parseItems(xml);
@@ -458,7 +431,7 @@ async function fetchFeed(feed: RSSFeed): Promise<NormalizedArticle[]> {
     }
     const tierBonus = TIER_SCORE_BONUS[feed.tier] || 0;
 
-    return items.slice(0, 15).map(item => {
+    return items.slice(0, 15).flatMap(item => {
       const summary = item.description.slice(0, 300) + (item.description.length > 300 ? '…' : '');
       let category = classifyCategory(item.title, summary, feed.category);
       let subtopic = classifySubtopic(item.title, summary, feed.subtopic || '');
@@ -468,7 +441,11 @@ async function fetchFeed(feed: RSSFeed): Promise<NormalizedArticle[]> {
       subtopic = recat.subtopic;
       const { level: impact_level, score: signal_score } = scoreImpact(item.title, summary, tierBonus);
       const market_direction = inferDirection(item.title, summary);
-      const published_at = item.pubDate ? new Date(item.pubDate).toISOString() : new Date().toISOString();
+      const published_at = parsePublishedAt(item.pubDate);
+      if (!published_at) {
+        console.warn(`Skipping ${feed.source} item with invalid publication date`);
+        return [];
+      }
       const titleHash = makeTitleHash(item.title);
 
       // For X feeds, convert nitter links back to twitter.com links
@@ -478,7 +455,7 @@ async function fetchFeed(feed: RSSFeed): Promise<NormalizedArticle[]> {
       }
 
       const article: NormalizedArticle = {
-        id: `rss-${hashString(item.title + feed.source)}`,
+        id: `rss-${hashString(normalizeArticleUrl(item.link) || `${feed.source}:${titleHash}`)}`,
         title: item.title,
         summary: summary || 'No summary available.',
         source: feed.source,
@@ -499,12 +476,22 @@ async function fetchFeed(feed: RSSFeed): Promise<NormalizedArticle[]> {
       };
 
       article.badges = assignBadges(article);
-      return article;
+      return [article];
     });
   } catch (error) {
     console.error(`Error fetching ${feed.source}:`, error);
     return [];
   }
+}
+
+function parsePublishedAt(value: string): string | null {
+  if (!value.trim()) return new Date().toISOString();
+  const timestamp = Date.parse(value);
+  return Number.isFinite(timestamp) ? new Date(timestamp).toISOString() : null;
+}
+
+function normalizeArticleUrl(url: string): string {
+  return url.trim().replace(/#.*$/, '').replace(/[?&](utm_[^=]+|fbclid|gclid)=[^&]*/gi, '').replace(/[?&]$/, '');
 }
 
 // ─── Smart Deduplication with Story Clustering ───

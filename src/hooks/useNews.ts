@@ -7,6 +7,7 @@ const ENRICHMENT_CACHE_KEY = 'morning-feed-enrichment-v6'; // Bump to force re-e
 const ENRICHMENT_CACHE_DURATION = 30 * 60 * 1000; // 30 min
 const UI_POLL_INTERVAL = 60 * 1000; // 1 minute
 const RSS_FETCH_INTERVAL = 5 * 60 * 1000; // 5 minutes
+const SUPABASE_REQUEST_TIMEOUT = 10 * 1000;
 
 interface EnrichmentCache {
   thaiTitles: Record<string, string>;
@@ -27,6 +28,22 @@ function loadEnrichmentCache(): EnrichmentCache | null {
 
 function saveEnrichmentCache(data: EnrichmentCache) {
   try { localStorage.setItem(ENRICHMENT_CACHE_KEY, JSON.stringify(data)); } catch { }
+}
+
+function withTimeout<T>(operation: PromiseLike<T>, timeoutMs: number = SUPABASE_REQUEST_TIMEOUT): Promise<T> {
+  return new Promise((resolve, reject) => {
+    const timeout = window.setTimeout(() => reject(new Error('Live feed request timed out')), timeoutMs);
+    operation.then(
+      value => {
+        window.clearTimeout(timeout);
+        resolve(value);
+      },
+      error => {
+        window.clearTimeout(timeout);
+        reject(error);
+      },
+    );
+  });
 }
 
 // Map DB row to frontend NewsItem
@@ -51,10 +68,12 @@ function mapDbRow(row: any): NewsItem {
 }
 
 export function useNews(prefs: UserPreferences) {
-  const [articles, setArticles] = useState<NewsItem[]>(demoNews);
+  // Demo headlines are useful during local development, but must never be
+  // shown in the deployed app when the live feed is unavailable.
+  const [articles, setArticles] = useState<NewsItem[]>(() => import.meta.env.DEV ? demoNews : []);
   const [narratives, setNarratives] = useState<Narrative[]>(() => {
     const cached = loadEnrichmentCache();
-    return cached ? cached.narratives : demoNarratives;
+    return cached ? cached.narratives : (import.meta.env.DEV ? demoNarratives : []);
   });
   const [thaiTitles, setThaiTitles] = useState<Record<string, string>>(() => {
     const cached = loadEnrichmentCache();
@@ -67,6 +86,7 @@ export function useNews(prefs: UserPreferences) {
   const [isLoading, setIsLoading] = useState(false);
   const [lastUpdated, setLastUpdated] = useState<string | null>(null);
   const [isLive, setIsLive] = useState(false);
+  const [hasFeedError, setHasFeedError] = useState(false);
 
   const uiPollRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const rssFetchRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -75,21 +95,27 @@ export function useNews(prefs: UserPreferences) {
   // Load articles from DB
   const loadFromDb = useCallback(async () => {
     try {
-      const { data, error } = await supabase
+      const { data, error } = await withTimeout(supabase
         .from('articles')
         .select('*')
         .order('signal_score', { ascending: false })
         .order('published_at', { ascending: false })
-        .limit(100);
+        .limit(100));
 
-      if (error || !data?.length) return false;
+      if (error) {
+        setHasFeedError(true);
+        return false;
+      }
+      if (!data?.length) return false;
 
       const mapped = data.map(mapDbRow);
       setArticles(mapped);
       setLastUpdated(new Date().toISOString());
       setIsLive(true);
+      setHasFeedError(false);
       return true;
     } catch {
+      setHasFeedError(true);
       return false;
     }
   }, []);
@@ -97,13 +123,15 @@ export function useNews(prefs: UserPreferences) {
   // Trigger RSS fetch edge function
   const triggerRssFetch = useCallback(async () => {
     try {
-      const { error } = await supabase.functions.invoke('fetch-rss');
+      const { error } = await withTimeout(supabase.functions.invoke('fetch-rss'));
       if (error) throw error;
       lastRssFetch.current = Date.now();
       // After fetching, reload from DB
-      await loadFromDb();
+      const loaded = await loadFromDb();
+      if (!loaded) setHasFeedError(true);
     } catch (err) {
       console.error('RSS fetch failed:', err);
+      setHasFeedError(true);
     }
   }, [loadFromDb]);
 
@@ -119,9 +147,9 @@ export function useNews(prefs: UserPreferences) {
         subtopic: a.subtopic || '',
       }));
 
-      const { data, error } = await supabase.functions.invoke('enrich-articles', {
+      const { data, error } = await withTimeout(supabase.functions.invoke('enrich-articles', {
         body: { articles: summaries },
-      });
+      }));
 
       if (error || !data) {
         console.log('[Enrichment] Error or no data:', error);
@@ -201,23 +229,32 @@ export function useNews(prefs: UserPreferences) {
         }
       }
 
-      // Check if enrichment cache has Thai translations for current articles
-      const cachedEnrichment = loadEnrichmentCache();
-      const currentArticleIds = (await supabase.from('articles').select('id').order('signal_score', { ascending: false }).limit(50)).data?.map((r: any) => r.id) || [];
-      
-      // Force re-enrichment if cache is missing Thai translations for top articles
-      const hasSufficientThaiTranslations = cachedEnrichment && 
-        currentArticleIds.slice(0, 10).filter((id: string) => cachedEnrichment.thaiTitles[id]).length >= 5;
-
-      if ((!cachedEnrichment || !hasSufficientThaiTranslations) && mounted) {
-        const { data } = await supabase
-          .from('articles')
-          .select('*')
-          .order('signal_score', { ascending: false })
-          .limit(50);
-        if (data?.length) {
-          enrichArticles(data.map(mapDbRow));
+      try {
+        // Check if enrichment cache has Thai translations for current articles
+        const cachedEnrichment = loadEnrichmentCache();
+        let currentArticleIds: string[] = [];
+        if (hasData || lastRssFetch.current > 0) {
+          const { data } = await withTimeout(supabase.from('articles').select('id').order('signal_score', { ascending: false }).limit(50));
+          currentArticleIds = data?.map((r: any) => r.id) || [];
         }
+
+        // Force re-enrichment if cache is missing Thai translations for top articles
+        const hasSufficientThaiTranslations = cachedEnrichment &&
+          currentArticleIds.slice(0, 10).filter((id: string) => cachedEnrichment.thaiTitles[id]).length >= 5;
+
+        if ((!cachedEnrichment || !hasSufficientThaiTranslations) && mounted) {
+          const { data } = await withTimeout(supabase
+            .from('articles')
+            .select('*')
+            .order('signal_score', { ascending: false })
+            .limit(50));
+          if (data?.length) {
+            enrichArticles(data.map(mapDbRow));
+          }
+        }
+      } catch (err) {
+        console.error('Live feed enrichment check failed:', err);
+        setHasFeedError(true);
       }
 
       if (mounted) setIsLoading(false);
@@ -256,6 +293,7 @@ export function useNews(prefs: UserPreferences) {
     isLoading,
     lastUpdated,
     isLive,
+    hasFeedError,
     refresh,
   };
 }
